@@ -315,82 +315,60 @@ return [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
+        
+        // Admin Dashboard
         [
-            'text' => 'blog',
-            'url' => 'admin/blog',
-            'can' => 'manage-blog',
+            'text' => 'Dashboard',
+            'route' => 'admin.dashboard',
+            'icon' => 'fas fa-fw fa-tachometer-alt',
+        ],
+
+        ['header' => 'MANAJEMEN KARYAWAN'],
+        [
+            'text' => 'Data Karyawan',
+            'route' => 'admin.employees.index',
+            'icon' => 'fas fa-fw fa-users',
         ],
         [
-            'text' => 'pages',
-            'url' => 'admin/pages',
-            'icon' => 'far fa-fw fa-file',
-            'label' => 4,
-            'label_color' => 'success',
+            'text' => 'Jadwal Kerja',
+            'route' => 'admin.work-schedules.index',
+            'icon' => 'fas fa-fw fa-calendar-week',
         ],
-        ['header' => 'account_settings'],
+
+        ['header' => 'ABSENSI & KEHADIRAN'],
         [
-            'text' => 'profile',
-            'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-user',
-        ],
-        [
-            'text' => 'change_password',
-            'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-lock',
+            'text' => 'Data Absensi',
+            'route' => 'admin.attendances.index',
+            'icon' => 'fas fa-fw fa-clock',
         ],
         [
-            'text' => 'multilevel',
-            'icon' => 'fas fa-fw fa-share',
-            'submenu' => [
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                    'submenu' => [
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                        ],
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                            'submenu' => [
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
-            ],
+            'text' => 'Karyawan Terlambat',
+            'route' => 'admin.late_employees.index',
+            'icon' => 'fas fa-fw fa-exclamation-triangle',
         ],
-        ['header' => 'labels'],
+
+        ['header' => 'IZIN & CUTI'],
         [
-            'text' => 'important',
-            'icon_color' => 'red',
-            'url' => '#',
+            'text' => 'Permohonan Cuti',
+            'route' => 'admin.leaves.index',
+            'icon' => 'fas fa-fw fa-calendar-minus',
         ],
         [
-            'text' => 'warning',
-            'icon_color' => 'yellow',
-            'url' => '#',
+            'text' => 'Permohonan Izin',
+            'route' => 'admin.permissions.index',
+            'icon' => 'fas fa-fw fa-file-alt',
+        ],
+
+        ['header' => 'PENGATURAN'],
+        [
+            'text' => 'Profil Admin',
+            'route' => 'admin.profile',
+            'icon' => 'fas fa-fw fa-user-cog',
         ],
         [
-            'text' => 'information',
-            'icon_color' => 'cyan',
-            'url' => '#',
+            'text' => 'Manajemen Admin',
+            'route' => 'admin.admins.index',
+            'icon' => 'fas fa-fw fa-user-shield',
         ],
     ],
 

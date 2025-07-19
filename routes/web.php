@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\LeaveController as AdminLeaveController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
 use App\Http\Controllers\Admin\LateEmployeeController;
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use App\Http\Controllers\Admin\WorkScheduleController;
 
 // Employee Controllers
 
@@ -89,6 +90,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('late-employees', [LateEmployeeController::class, 'index'])->name('late_employees.index');
     // Anda mungkin perlu rute API untuk data Datatables di sini juga
     Route::get('api/late-employees', [LateEmployeeController::class, 'getLateEmployeesData'])->name('api.late_employees.data');
+
+    // Rute untuk Jadwal Kerja
+    Route::resource('work-schedules', WorkScheduleController::class);
+    Route::get('work-schedules', [WorkScheduleController::class, 'index'])->name('work-schedules.index');
+    Route::get('work-schedules/create', [WorkScheduleController::class, 'create'])->name('work-schedules.create');
+    Route::post('work-schedules', [WorkScheduleController::class, 'store'])->name('work-schedules.store');
+    Route::get('work-schedules/{employee}', [WorkScheduleController::class, 'show'])->name('work-schedules.show');
+    Route::get('work-schedules/{employee}/edit', [WorkScheduleController::class, 'edit'])->name('work-schedules.edit');
+    Route::put('work-schedules/{employee}', [WorkScheduleController::class, 'update'])->name('work-schedules.update');
+    Route::delete('work-schedules/{employee}', [WorkScheduleController::class, 'destroy'])->name('work-schedules.destroy');
 
     // Notifikasi Admin
     Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
