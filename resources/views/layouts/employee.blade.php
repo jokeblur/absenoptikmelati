@@ -23,8 +23,28 @@
     
     <style>
         body {
-            background-color: #f8f9fa;
             font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        /* Background with Optik Melati image */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset('image/optikmelati.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.05;
+            z-index: -1;
         }
         
         /* Apply Poppins to all elements */
@@ -32,138 +52,391 @@
             font-family: 'Poppins', sans-serif;
         }
         
-        .navbar {
-            background-color: #2c3e50;
+        /* Top Header with Logo and Logout */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid #dc2626;
         }
-        .navbar-brand, .nav-link {
-            color: #ecf0f1 !important;
+        
+        .top-header .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        /* Navbar toggler styles moved to animated section below */
-        /* Card styling consistent with dark theme */
+        
+        .top-header .logo-section img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        .top-header .logo-section .brand-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #dc2626;
+        }
+        
+        .top-header .logout-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+        
+        .top-header .logout-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+        
+        .top-header .logout-btn i {
+            font-size: 1.1rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            margin-bottom: 100px;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Card styling */
         .card {
-            margin-bottom: 15px;
-            border: 1px solid #bdc3c7;
-            border-radius: 0.375rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
         }
         
         .card-header {
-            background-color: #ecf0f1;
-            border-bottom: 1px solid #bdc3c7;
-            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            border-bottom: none;
+            padding: 20px;
+            color: white;
             font-weight: 600;
-            color: #2c3e50;
         }
         
         .card-body {
-            padding: 1rem;
-            background-color: #fff;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.98);
         }
         
         .card-title {
-            color: #2c3e50;
+            color: #dc2626;
             font-weight: 600;
+            margin-bottom: 20px;
         }
         
-        /* Form styling */
-        .form-control, .form-select {
-            border: 1px solid #bdc3c7;
-            border-radius: 0.375rem;
-            padding: 0.375rem 0.75rem;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 0.2rem rgba(52,152,219,0.25);
-        }
-        
-        .form-label {
-            color: #2c3e50;
-            font-weight: 500;
-        }
+        /* Bottom Footer Menu */
         .footer-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background-color: #2c3e50;
-            border-top: 1px solid #34495e;
-            padding: 10px 0;
-            box-shadow: 0 -2px 5px rgba(0,0,0,.1);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            padding: 15px 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
             z-index: 1000;
+            border-top: 3px solid #ef4444;
         }
-        .footer-nav .nav-link {
+        
+        .footer-nav .nav-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        
+        .footer-nav .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.8em;
-            color: #bdc3c7;
             text-decoration: none;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
+            color: rgba(255, 255, 255, 0.8);
             transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 12px;
+            min-width: 60px;
         }
-        .footer-nav .nav-link:hover {
-            color: #3498db;
-            background-color: #34495e;
+        
+        .footer-nav .nav-item:hover,
+        .footer-nav .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
         }
-        .footer-nav .nav-link.active {
-            color: #3498db;
-            background-color: #34495e;
-        }
-        .footer-nav .nav-link i {
-            font-size: 1.5em;
+        
+        .footer-nav .nav-item i {
+            font-size: 1.5rem;
             margin-bottom: 5px;
             display: block;
         }
-        .footer-nav .nav-link span {
-            font-size: 0.75em;
+        
+        .footer-nav .nav-item span {
+            font-size: 0.75rem;
             font-weight: 500;
+            text-align: center;
         }
+        
+        /* Button styling */
+        .btn-primary {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
+        }
+        
+        .btn-info:hover {
+            background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
+        }
+        
+        .btn-lg {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 15px;
+        }
+        
+        /* Form styling */
+        .form-control, .form-select {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.15);
+            background: white;
+        }
+        
+        .form-label {
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        /* Alert styling */
+        .alert {
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            border-left: 4px solid #059669;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border-left: 4px solid #d97706;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+        
+        /* Badge styling */
+        .badge {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .badge.bg-primary {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        }
+        
+        .badge.bg-info {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+            color: white !important;
+        }
+        
+        /* Loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            display: none; /* Hidden by default */
+            display: none;
         }
+        
         .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #dc2626;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
         
-        /* Smooth animation for navbar collapse */
-        .navbar-collapse {
-            transition: all 0.3s ease-in-out;
+        /* Table styling */
+        .table {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
         
-        .navbar-collapse.collapsing {
-            transition: height 0.35s ease;
+        .table thead {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
         }
         
-        .navbar-collapse.show {
-            animation: slideDown 0.3s ease-in-out;
+        .table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
         }
         
-        @keyframes slideDown {
+        .table tbody td {
+            padding: 15px;
+            border-color: #f3f4f6;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .top-header {
+                padding: 12px 15px;
+            }
+            
+            .top-header .logo-section .brand-text {
+                font-size: 1rem;
+            }
+            
+            .top-header .logout-btn {
+                padding: 8px 12px;
+            }
+            
+            .main-content {
+                padding: 15px;
+                margin-top: 70px;
+            }
+            
+            .footer-nav .nav-item i {
+                font-size: 1.3rem;
+            }
+            
+            .footer-nav .nav-item span {
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* Custom animations */
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -171,501 +444,77 @@
             }
         }
         
-        /* Enhanced mobile navbar styling */
-        @media (max-width: 991.98px) {
-            .navbar-collapse {
-                background-color: #2c3e50;
-                padding: 1rem;
-                border-radius: 0.375rem;
-                margin-top: 0.5rem;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                border: 1px solid #34495e;
-            }
-            .navbar-nav .nav-item {
-                margin-bottom: 0.5rem;
-                border-bottom: 1px solid rgba(236,240,241,0.1);
-                padding-bottom: 0.5rem;
-            }
-            .navbar-nav .nav-item:last-child {
-                margin-bottom: 0;
-                border-bottom: none;
-                padding-bottom: 0;
-            }
-            .navbar-nav .nav-link {
-                padding: 0.75rem 1rem;
-                border-radius: 0.25rem;
-                transition: all 0.2s ease;
-                color: #ecf0f1 !important;
-            }
-            .navbar-nav .nav-link:hover {
-                background-color: rgba(236,240,241,0.1);
-                transform: translateX(5px);
-            }
-            .navbar-nav .nav-link.active {
-                background-color: rgba(52,152,219,0.2);
-                color: #3498db !important;
-            }
+        .card {
+            animation: fadeInUp 0.6s ease-out;
         }
         
-        /* Ensure hamburger menu is visible */
-        .navbar-toggler {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
         
-        /* Font Awesome styling */
-        .fas {
-            display: inline-block;
-            font-style: normal;
-            font-variant: normal;
-            text-rendering: auto;
-            line-height: 1;
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
         }
         
-        /* Icon sizes for better visibility */
-        .nav-link .fas {
-            font-size: 1.1em;
+        ::-webkit-scrollbar-thumb {
+            background: #dc2626;
+            border-radius: 3px;
         }
         
-        .footer-nav .nav-link .fas {
-            font-size: 1.5em;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        /* Animated hamburger icon */
-        .navbar-toggler {
-            border: 1px solid rgba(236,240,241,0.5);
-            padding: 0.25rem 0.5rem;
-            background-color: transparent;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .navbar-toggler:hover {
-            background-color: rgba(236,240,241,0.1);
-            transform: scale(1.05);
-        }
-        
-        .navbar-toggler:focus {
-            box-shadow: 0 0 0 0.2rem rgba(236,240,241,0.25);
-        }
-        
-        .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28236, 240, 241, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-            transition: all 0.3s ease;
-        }
-        
-        /* Animated hamburger when active */
-        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
-            transform: rotate(90deg);
-        }
-        
-        /* Custom hamburger animation */
-        .navbar-toggler[aria-expanded="true"] {
-            background-color: rgba(52,152,219,0.2);
-            border-color: #3498db;
-        }
-
-        /* Ensure navbar collapse works properly */
-        .navbar-collapse {
-            flex-basis: 100%;
-            flex-grow: 1;
-            align-items: center;
-        }
-        
-        @media (max-width: 991.98px) {
-            .navbar-collapse {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-                background-color: #2c3e50;
-                border-top: 1px solid #34495e;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            }
-            
-            .navbar-nav {
-                padding: 1rem;
-            }
-        }
-
-        /* Button styling consistent with dark navbar theme */
-        .btn-primary {
-            background-color: #3498db;
-            border-color: #3498db;
-            color: #fff;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-            border-color: #2980b9;
-            color: #fff;
-        }
-        
-        .btn-success {
-            background-color: #27ae60;
-            border-color: #27ae60;
-            color: #fff;
-        }
-        
-        .btn-success:hover {
-            background-color: #229954;
-            border-color: #229954;
-            color: #fff;
-        }
-        
-        .btn-danger {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-            color: #fff;
-        }
-        
-        .btn-danger:hover {
-            background-color: #c0392b;
-            border-color: #c0392b;
-            color: #fff;
-        }
-        
-        .btn-warning {
-            background-color: #f39c12;
-            border-color: #f39c12;
-            color: #fff;
-        }
-        
-        .btn-warning:hover {
-            background-color: #e67e22;
-            border-color: #e67e22;
-            color: #fff;
-        }
-        
-        .btn-info {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
-            color: #fff;
-        }
-        
-        .btn-info:hover {
-            background-color: #138496;
-            border-color: #138496;
-            color: #fff;
-        }
-        
-        .btn-secondary {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: #fff;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #5a6268;
-            color: #fff;
-        }
-        
-        .btn-outline-primary {
-            color: #3498db;
-            border-color: #3498db;
-        }
-        
-        .btn-outline-primary:hover {
-            background-color: #3498db;
-            border-color: #3498db;
-            color: #fff;
-        }
-        
-        .btn-outline-success {
-            color: #27ae60;
-            border-color: #27ae60;
-        }
-        
-        .btn-outline-success:hover {
-            background-color: #27ae60;
-            border-color: #27ae60;
-            color: #fff;
-        }
-        
-        .btn-outline-danger {
-            color: #e74c3c;
-            border-color: #e74c3c;
-        }
-        
-        .btn-outline-danger:hover {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-            color: #fff;
-        }
-        
-        .btn-outline-warning {
-            color: #f39c12;
-            border-color: #f39c12;
-        }
-        
-        .btn-outline-warning:hover {
-            background-color: #f39c12;
-            border-color: #f39c12;
-            color: #fff;
-        }
-        
-        .btn-outline-info {
-            color: #17a2b8;
-            border-color: #17a2b8;
-        }
-        
-        .btn-outline-info:hover {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
-            color: #fff;
-        }
-        
-        .btn-outline-secondary {
-            color: #6c757d;
-            border-color: #6c757d;
-        }
-        
-        .btn-outline-secondary:hover {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: #fff;
-        }
-        
-        /* Logout button styling */
-        .btn-link.nav-link {
-            color: #bdc3c7 !important;
-            text-decoration: none;
-            border: none;
-            background: none;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-link.nav-link:hover {
-            color: #3498db !important;
-            background-color: #34495e;
-        }
-        
-        .dropdown-item {
-            color: #2c3e50;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-            transition: all 0.3s ease;
-        }
-        
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-            color: #2c3e50;
-        }
-        
-        /* Button focus states */
-        .btn:focus {
-            box-shadow: 0 0 0 0.2rem rgba(52,152,219,0.25);
-        }
-        
-        .btn-primary:focus {
-            box-shadow: 0 0 0 0.2rem rgba(52,152,219,0.25);
-        }
-        
-        .btn-success:focus {
-            box-shadow: 0 0 0 0.2rem rgba(39,174,96,0.25);
-        }
-        
-        .btn-danger:focus {
-            box-shadow: 0 0 0 0.2rem rgba(231,76,60,0.25);
-        }
-        
-        .btn-warning:focus {
-            box-shadow: 0 0 0 0.2rem rgba(243,156,18,0.25);
-        }
-        
-        .btn-info:focus {
-            box-shadow: 0 0 0 0.2rem rgba(23,162,184,0.25);
-        }
-        
-        .btn-secondary:focus {
-            box-shadow: 0 0 0 0.2rem rgba(108,117,125,0.25);
-        }
-
-        /* Alert styling consistent with dark theme */
-        .alert-success {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-        
-        .alert-warning {
-            background-color: #fff3cd;
-            border-color: #ffeaa7;
-            color: #856404;
-        }
-        
-        .alert-info {
-            background-color: #d1ecf1;
-            border-color: #bee5eb;
-            color: #0c5460;
-        }
-        
-        .alert-primary {
-            background-color: #cce7ff;
-            border-color: #b3d9ff;
-            color: #004085;
-        }
-        
-        /* Badge styling */
-        .badge.bg-success {
-            background-color: #27ae60 !important;
-        }
-        
-        .badge.bg-danger {
-            background-color: #e74c3c !important;
-        }
-        
-        .badge.bg-warning {
-            background-color: #f39c12 !important;
-        }
-        
-        .badge.bg-info {
-            background-color: #17a2b8 !important;
-        }
-        
-        .badge.bg-primary {
-            background-color: #3498db !important;
-        }
-        
-        .badge.bg-secondary {
-            background-color: #6c757d !important;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b91c1c;
         }
     </style>
     @stack('styles')
 </head>
 <body>
     
+    <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('employee.dashboard') }}">
-                <img src="{{asset('image/optik-melati.png')}}" alt="Logo Optik Melati" style="width:36px; height:36px; object-fit:contain; margin-right:8px;">
-                <span>Absensi Optik Melati</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('employee.dashboard') ? 'active' : '' }}" href="{{ route('employee.dashboard') }}">
-                            <i class="fas fa-home me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('employee.history') ? 'active' : '' }}" href="{{ route('employee.history') }}">
-                            <i class="fas fa-history me-1"></i>Riwayat
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('employee.pengajuan.index') ? 'active' : '' }}" href="{{ route('employee.pengajuan.index') }}">
-                            <i class="fas fa-file-alt me-1"></i>Pengajuan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('employee.profile') ? 'active' : '' }}" href="{{ route('employee.profile') }}">
-                            <i class="fas fa-user me-1"></i>Profil
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            @if(Auth::user()->profile_photo)
-                                <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" 
-                                     alt="Foto Profil" 
-                                     class="rounded-circle me-2" 
-                                     style="width: 32px; height: 32px; object-fit: cover;">
-                            @else
-                                <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&size=32&background=3498db&color=fff" 
-                                     alt="Foto Profil" 
-                                     class="rounded-circle me-2" 
-                                     style="width: 32px; height: 32px; object-fit: cover;">
-                            @endif
-                            <span>{{ Auth::user()->name }}</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ route('employee.profile') }}">
-                                <i class="fas fa-user me-2"></i>Edit Profil
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form action="{{ route('logout') }}" method="POST" class="d-inline" id="logoutForm">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; border: none; background: none; padding: 0.5rem 1rem;">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="logo-section">
+            <img src="{{ asset('image/optik-melati.png') }}" alt="Logo Optik Melati">
+            <div class="brand-text">Absensi Optik Melati</div>
         </div>
-    </nav>
+        
+        <form action="{{ route('logout') }}" method="POST" class="d-inline" id="logoutForm">
+            @csrf
+            <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="d-none d-sm-inline">Logout</span>
+            </button>
+        </form>
+    </div>
 
-    <div class="container mt-3 mb-5 pb-5">
+    <!-- Main Content -->
+    <div class="main-content">
         @yield('content')
     </div>
 
-    
+    <!-- Bottom Footer Menu -->
     <nav class="footer-nav">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col">
-                    <a class="nav-link {{ Request::routeIs('employee.dashboard') ? 'active' : '' }}" href="{{ route('employee.dashboard') }}">
-                        <i class="fas fa-home"></i>
-                        <span>Home</span>
-                    </a>
-                </div>
-                <div class="col">
-                    <a class="nav-link {{ Request::routeIs('employee.pengajuan.index') ? 'active' : '' }}" href="{{ route('employee.pengajuan.index') }}">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Pengajuan</span>
-                    </a>
-                </div>
-                <div class="col">
-                    <a class="nav-link {{ Request::routeIs('employee.history') ? 'active' : '' }}" href="{{ route('employee.history') }}">
-                        <i class="fas fa-history"></i>
-                        <span>Riwayat</span>
-                    </a>
-                </div>
-                <div class="col">
-                    <a class="nav-link {{ Request::routeIs('employee.profile') ? 'active' : '' }}" href="{{ route('employee.profile') }}">
-                        <i class="fas fa-user"></i>
-                        <span>Profil</span>
-                    </a>
-                </div>
-                <div class="col">
-                    <form action="{{ route('logout') }}" method="POST" class="d-grid" id="footerLogoutForm">
-                        @csrf
-                        <button type="submit" class="btn btn-link nav-link text-decoration-none">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
+        <div class="nav-container">
+            <a class="nav-item {{ Request::routeIs('employee.dashboard') ? 'active' : '' }}" href="{{ route('employee.dashboard') }}">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a class="nav-item {{ Request::routeIs('employee.pengajuan.index') ? 'active' : '' }}" href="{{ route('employee.pengajuan.index') }}">
+                <i class="fas fa-file-alt"></i>
+                <span>Pengajuan</span>
+            </a>
+            <a class="nav-item {{ Request::routeIs('employee.history') ? 'active' : '' }}" href="{{ route('employee.history') }}">
+                <i class="fas fa-history"></i>
+                <span>Riwayat</span>
+            </a>
+            <a class="nav-item {{ Request::routeIs('employee.profile') ? 'active' : '' }}" href="{{ route('employee.profile') }}">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
         </div>
     </nav>
 
@@ -690,147 +539,38 @@
             $('#loadingOverlay').hide();
         }
 
-        // Enhanced navbar functionality with smooth animations
+        // Handle logout confirmation
         $(document).ready(function() {
-            console.log('Employee layout loaded');
-            
-            // Initialize Bootstrap collapse
-            var navbarCollapse = document.getElementById('navbarNav');
-            var bsCollapse = new bootstrap.Collapse(navbarCollapse, {
-                toggle: false
-            });
-            
-            // Enhanced hamburger menu functionality
-            $('.navbar-toggler').on('click', function(e) {
-                e.preventDefault();
-                console.log('Hamburger menu clicked');
-                
-                var target = $(this).data('bs-target');
-                var $navbarCollapse = $(target);
-                
-                // Toggle with smooth animation
-                if ($navbarCollapse.hasClass('show')) {
-                    console.log('Closing navbar');
-                    $navbarCollapse.removeClass('show').addClass('collapsing');
-                    setTimeout(function() {
-                        $navbarCollapse.removeClass('collapsing');
-                    }, 350);
-                } else {
-                    console.log('Opening navbar');
-                    $navbarCollapse.addClass('collapsing');
-                    setTimeout(function() {
-                        $navbarCollapse.removeClass('collapsing').addClass('show');
-                    }, 10);
-                }
-                
-                // Update aria-expanded
-                $(this).attr('aria-expanded', !$navbarCollapse.hasClass('show'));
-            });
-            
-            // Close navbar when clicking outside
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('.navbar').length) {
-                    $('#navbarNav').removeClass('show');
-                    $('.navbar-toggler').attr('aria-expanded', 'false');
-                }
-            });
-            
-            // Close navbar when clicking on a link (mobile)
-            $('.navbar-nav .nav-link').on('click', function() {
-                if ($(window).width() < 992) {
-                    setTimeout(function() {
-                        $('#navbarNav').removeClass('show');
-                        $('.navbar-toggler').attr('aria-expanded', 'false');
-                    }, 300);
-                }
-            });
-            
-            // Debug: Check if Bootstrap is loaded
-            if (typeof bootstrap !== 'undefined') {
-                console.log('Bootstrap loaded successfully');
-            } else {
-                console.log('Bootstrap not loaded, using fallback');
-            }
-            
-            // Debug: Check navbar elements
-            console.log('Navbar elements:', {
-                toggler: $('.navbar-toggler').length,
-                collapse: $('#navbarNav').length,
-                navItems: $('.navbar-nav .nav-item').length
-            });
-        });
-
-        // Fallback for Bootstrap collapse if not loaded
-        if (typeof bootstrap === 'undefined') {
-            console.log('Using fallback navbar functionality');
-            
-            $('.navbar-toggler').on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                var target = $(this).data('bs-target');
-                var $navbarCollapse = $(target);
-                var isExpanded = $(this).attr('aria-expanded') === 'true';
-                
-                console.log('Fallback hamburger clicked, expanded:', isExpanded);
-                
-                if (isExpanded) {
-                    // Close menu
-                    $navbarCollapse.removeClass('show').addClass('collapsing');
-                    $(this).attr('aria-expanded', 'false');
-                    
-                    setTimeout(function() {
-                        $navbarCollapse.removeClass('collapsing');
-                    }, 350);
-                } else {
-                    // Open menu
-                    $navbarCollapse.addClass('collapsing');
-                    $(this).attr('aria-expanded', 'true');
-                    
-                    setTimeout(function() {
-                        $navbarCollapse.removeClass('collapsing').addClass('show');
-                    }, 10);
-                }
-            });
-        }
-
-        // Handle logout forms
-        $(document).ready(function() {
-            console.log('Setting up logout forms...');
-            
-            // Handle navbar logout form
             $('#logoutForm').on('submit', function(e) {
-                console.log('Navbar logout form submitted');
-                if (confirm('Apakah Anda yakin ingin logout?')) {
-                    console.log('Proceeding with logout...');
-                    return true; // Allow form to submit
-                } else {
-                    e.preventDefault();
-                    return false;
-                }
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: 'Konfirmasi Logout',
+                    text: 'Apakah Anda yakin ingin keluar?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Logout',
+                    cancelButtonText: 'Batal',
+                    backdrop: true,
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        showLoading();
+                        this.submit();
+                    }
+                });
             });
             
-            // Handle footer logout form
-            $('#footerLogoutForm').on('submit', function(e) {
-                console.log('Footer logout form submitted');
-                if (confirm('Apakah Anda yakin ingin logout?')) {
-                    console.log('Proceeding with logout...');
-                    return true; // Allow form to submit
-                } else {
-                    e.preventDefault();
-                    return false;
-                }
-            });
+            // Smooth scrolling and animations
+            $('body').addClass('loaded');
             
-            // Debug: Check if forms exist
-            console.log('Logout forms found:', {
-                navbarForm: $('#logoutForm').length,
-                footerForm: $('#footerLogoutForm').length
-            });
-            
-            // Test logout functionality
-            $('.dropdown-item[type="submit"]').on('click', function() {
-                console.log('Logout button clicked');
+            // Add touch feedback for mobile
+            $('.footer-nav .nav-item, .btn, .top-header .logout-btn').on('touchstart', function() {
+                $(this).addClass('touching');
+            }).on('touchend touchcancel', function() {
+                $(this).removeClass('touching');
             });
         });
 
@@ -863,7 +603,12 @@
                                 errorMessage = "Terjadi kesalahan yang tidak diketahui.";
                                 break;
                         }
-                        Swal.fire('Gagal!', errorMessage, 'error');
+                        Swal.fire({
+                            title: 'Gagal!',
+                            text: errorMessage,
+                            icon: 'error',
+                            confirmButtonColor: '#dc2626'
+                        });
                         console.error("Error getting location:", error);
                     },
                     {
@@ -873,9 +618,40 @@
                     }
                 );
             } else {
-                Swal.fire('Perhatian!', "Geolocation tidak didukung oleh browser Anda.", 'warning');
+                Swal.fire({
+                    title: 'Perhatian!',
+                    text: 'Geolocation tidak didukung oleh browser Anda.',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
+
+        // Add CSS for touch feedback
+        $('<style>')
+            .prop('type', 'text/css')
+            .html(`
+                .touching {
+                    transform: scale(0.95) !important;
+                    transition: transform 0.1s ease !important;
+                }
+                
+                .loaded .card {
+                    animation: fadeInUp 0.6s ease-out;
+                }
+                
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `)
+            .appendTo('head');
     </script>
     @stack('scripts')
 </body>
