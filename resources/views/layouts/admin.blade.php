@@ -6,6 +6,9 @@
   <title>Absensi Optik Melati | Dashboard</title>
   
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  @if(session('success'))
+      <meta name="success-message" content="{{ session('success') }}">
+  @endif
    <!-- Font Awesome -->
   <link rel="stylesheet" href="{{ asset('AdminLTE-3.0.1/plugins/fontawesome-free/css/all.min.css')}}">
   <!-- Ionicons -->

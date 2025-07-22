@@ -33,9 +33,7 @@
                                 <th>Nama</th>
                                 <th>Email</th>
                                 <th>Cabang</th>
-                                <th>Jam Masuk</th>
-                                <th>Jam Pulang</th>
-                                <th width="200px">Aksi</th>
+                                <th width="150px">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -95,8 +93,11 @@
                         </div>
                     </div>
 
-                    <div class="col-sm-offset-2 col-sm-10">
+                    <div class="form-group mt-4">
                         <button type="submit" class="btn btn-primary" id="saveBtn" value="create">Simpan Perubahan</button>
+                        <a href="#" id="editWorkScheduleBtn" class="btn btn-info" style="display: none;">
+                            <i class="fas fa-clock"></i> Edit Jadwal Kerja
+                        </a>
                     </div>
                 </form>
             </div>
@@ -104,28 +105,24 @@
     </div>
 </div>
 
-<!-- Tambahkan modal setting jam kerja -->
-<div class="modal fade" id="workScheduleModal" tabindex="-1" role="dialog" aria-labelledby="workScheduleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+<!-- Modal Jadwal Kerja -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="workScheduleModalLabel">Setting Jam Kerja Karyawan</h5>
+                <h5 class="modal-title" id="scheduleModalLabel">Jadwal Kerja untuk <span id="employeeName"></span></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form id="workScheduleForm">
         <div class="modal-body">
-          <input type="hidden" id="ws_employee_id" name="employee_id">
-          <div id="workScheduleDays">
-            <!-- Akan diisi dinamis oleh JS -->
+                <div id="scheduleDetailsContent">
+                    <p class="text-center">Memuat jadwal...</p>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan Jadwal</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
         </div>
-      </form>
     </div>
   </div>
 </div>
@@ -150,6 +147,18 @@
 
     <script type="text/javascript">
       $(function () {
+          // Check for success message from meta tag and display with SweetAlert
+          const successMessage = $('meta[name="success-message"]').attr('content');
+          if (successMessage) {
+              Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  text: successMessage,
+                  showConfirmButton: false,
+                  timer: 2500
+              });
+          }
+
           // Setup CSRF token for all AJAX requests
           $.ajaxSetup({
               headers: {
@@ -163,52 +172,13 @@
               serverSide: true,
               ajax: "{{ route('admin.employees.index') }}",
               columns: [
-                   {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false}, // Nomor urut dari Yajra Datatables
+                   {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                   {data: 'name', name: 'name'},
                   {data: 'email', name: 'email'},
-                  {data: 'branch_name', name: 'branch_name'},
-                  {data: 'custom_clock_in_time', name: 'custom_clock_in_time'},
-                  {data: 'custom_clock_out_time', name: 'custom_clock_out_time'},
-
-                   // Kolom baru dari addColumn di controller
+                  {data: 'branch_name', name: 'branch.name'},
                   {data: 'action', name: 'action', orderable: false, searchable: false},
               ],
-              order: [[1, 'asc']], // Urutkan berdasarkan kolom kedua (nama) secara ascending sebagai default
-              drawCallback: function(settings) {
-                $('.editEmployee').each(function() {
-                  var employee_id = $(this).data('id');
-                  var $row = $(this).closest('tr');
-                  if ($row.find('.btn-work-schedule').length === 0) {
-                    $row.find('td:last').prepend('<button class="btn btn-sm btn-warning btn-work-schedule mr-1" data-id="'+employee_id+'"><i class="fa fa-clock"></i> Setting Jam Kerja</button>');
-                  }
-                });
-                // Event handler tombol Setting Jam Kerja
-                $('.btn-work-schedule').off('click').on('click', function() {
-                  var employee_id = $(this).data('id');
-                  $('#ws_employee_id').val(employee_id);
-                  // Load jadwal kerja dari backend
-                  $.get('/admin/employees/'+employee_id+'/work-schedule', function(data) {
-                    var days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
-                    var html = '';
-                    days.forEach(function(day, idx) {
-                      var dkey = day.toLowerCase();
-                      var ws = data.find(x => x.day === dkey) || {};
-                      html += '<div class="form-group row align-items-center">';
-                      html += '<label class="col-sm-3 col-form-label">'+day+'</label>';
-                      if(day === 'Minggu') {
-                        html += '<div class="col-sm-9"><input type="hidden" name="days['+dkey+'][is_holiday]" value="1"><span class="badge badge-danger">Libur</span></div>';
-                      } else {
-                        html += '<div class="col-sm-4"><input type="time" class="form-control" name="days['+dkey+'][clock_in]" value="'+(ws.clock_in||'08:00')+'"></div>';
-                        html += '<div class="col-sm-4"><input type="time" class="form-control" name="days['+dkey+'][clock_out]" value="'+(ws.clock_out||'17:00')+'"></div>';
-                        html += '<div class="col-sm-1"><input type="checkbox" name="days['+dkey+'][is_holiday]" value="1" '+(ws.is_holiday?'checked':'')+'> Libur</div>';
-                      }
-                      html += '</div>';
-                    });
-                    $('#workScheduleDays').html(html);
-                    $('#workScheduleModal').modal('show');
-                  });
-                });
-              }
+              order: [[1, 'asc']], 
           });
 
           // Event handler untuk tombol "Tambah Karyawan"
@@ -220,6 +190,7 @@
               $('.error-text').html(''); // Bersihkan pesan error
               $('#ajaxModel').modal('show');
               $('#password').attr('required', true); // Password wajib saat tambah
+              $('#editWorkScheduleBtn').hide(); // Sembunyikan tombol jadwal kerja saat membuat baru
           });
 
           // Event handler untuk tombol "Edit"
@@ -237,23 +208,29 @@ $('body').on('click', '.editEmployee', function () {
         $('#password').val('');
         $('#password').attr('required', false);
         $('.error-text').html('');
+
+        // Tampilkan dan atur URL untuk tombol edit jadwal kerja
+        var scheduleUrl = "{{ route('admin.work-schedules.edit', ['user' => ':id']) }}";
+        scheduleUrl = scheduleUrl.replace(':id', data.id);
+        $('#editWorkScheduleBtn').attr('href', scheduleUrl).show();
+
     }).fail(function(data) {
         Swal.fire('Error!', 'Gagal mengambil data karyawan.', 'error');
     });
 });
 
           // Event handler untuk submit form (Tambah/Edit)
-          $('#saveBtn').click(function (e) {
+          $('#employeeForm').on('submit', function (e) {
               e.preventDefault();
-              $(this).html('Mengirim..');
+              $('#saveBtn').html('Mengirim..');
 
-              var formData = new FormData($('#employeeForm')[0]);
+              var formData = new FormData(this);
               var employee_id = $('#employee_id').val();
-              var url = employee_id ? "{{ route('admin.employees.store') }}/" + employee_id : "{{ route('admin.employees.store') }}";
-              var type = employee_id ? 'POST' : 'POST'; // Laravel menggunakan POST untuk PUT/PATCH
+              var url = employee_id ? "{{ url('admin/employees') }}/" + employee_id : "{{ route('admin.employees.store') }}";
+              var type = 'POST';
 
               if (employee_id) {
-                  formData.append('_method', 'PUT'); // Tambahkan method override untuk PUT
+                  formData.append('_method', 'PUT');
               }
 
               $.ajax({
@@ -309,18 +286,55 @@ $('body').on('click', '.editEmployee', function () {
                   }
               });
           });
-      });
 
-      // Submit form setting jam kerja
-      $('#workScheduleForm').on('submit', function(e) {
-        e.preventDefault();
-        var employee_id = $('#ws_employee_id').val();
-        var formData = $(this).serialize();
-        $.post('/admin/employees/'+employee_id+'/work-schedule', formData, function(res) {
-          $('#workScheduleModal').modal('hide');
-          Swal.fire('Berhasil', 'Jadwal kerja berhasil disimpan', 'success');
-        }).fail(function(xhr) {
-          Swal.fire('Error', 'Gagal menyimpan jadwal kerja', 'error');
+          // Event handler untuk tombol "Lihat Jadwal"
+          $('body').on('click', '.view-schedule', function () {
+              var userId = $(this).data('id');
+              var userName = $(this).data('name');
+              $('#employeeName').text(userName);
+              $('#scheduleDetailsContent').html('<p class="text-center">Memuat jadwal...</p>');
+              $('#scheduleModal').modal('show');
+
+              var url = "{{ route('admin.employees.schedule-details', ['user' => ':userId']) }}";
+              url = url.replace(':userId', userId);
+
+              $.get(url, function (data) {
+                  var content = '<table class="table table-bordered table-striped">';
+                  content += '<thead class="table-dark"><tr><th>Hari</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Istirahat</th></tr></thead><tbody>';
+                  
+                  var days = {
+                      'monday': 'Senin', 'tuesday': 'Selasa', 'wednesday': 'Rabu', 
+                      'thursday': 'Kamis', 'friday': 'Jumat', 'saturday': 'Sabtu', 'sunday': 'Minggu'
+                  };
+
+                  $.each(days, function(key, dayName) {
+                      var schedule = data[key];
+                      content += '<tr>';
+                      content += '<td>' + dayName + '</td>';
+
+                      if (key === 'sunday') {
+                          content += '<td colspan="3"><span class="badge bg-secondary">Hari Libur</span></td>';
+                      } else if (schedule && (schedule.is_holiday == 0 || schedule.is_holiday == '0')) {
+                          var clockIn = schedule.clock_in ? new Date('1970-01-01T' + schedule.clock_in).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+                          var clockOut = schedule.clock_out ? new Date('1970-01-01T' + schedule.clock_out).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+                          var breakTime = (schedule.break_start_time && schedule.break_end_time)
+                              ? new Date('1970-01-01T' + schedule.break_start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date('1970-01-01T' + schedule.break_end_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                              : '-';
+                          
+                          content += '<td><span class="badge bg-success">' + clockIn + '</span></td>';
+                          content += '<td><span class="badge bg-danger">' + clockOut + '</span></td>';
+                          content += '<td><span class="badge bg-info">' + breakTime + '</span></td>';
+                      } else {
+                          content += '<td colspan="3"><span class="badge bg-secondary">Hari Libur</span></td>';
+                      }
+                      content += '</tr>';
+                  });
+
+                  content += '</tbody></table>';
+                  $('#scheduleDetailsContent').html(content);
+              }).fail(function() {
+                  $('#scheduleDetailsContent').html('<p class="text-center text-danger">Gagal memuat jadwal.</p>');
+              });
         });
       });
     </script>

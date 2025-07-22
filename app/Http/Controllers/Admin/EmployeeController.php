@@ -14,15 +14,17 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::where('role', 'karyawan')->with('branch')->select('*'); // Ambil user dengan role karyawan
+            $data = User::where('role', 'karyawan')->with(['branch', 'workSchedules'])->select('*'); // Eager load workSchedules
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('branch_name', function(User $user) {
                     return $user->branch->name ?? '-'; // Tampilkan nama cabang
                 })
                 ->addColumn('action', function($row){
-                    $btn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Edit" class="edit btn btn-primary btn-sm editEmployee">Edit</a>';
-                    $btn .= ' <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteEmployee">Delete</a>';
+                    $btn = '<a href="javascript:void(0)" data-id="'.$row->id.'" data-name="'.$row->name.'" class="btn btn-secondary btn-sm mr-1 view-schedule" title="Lihat Jadwal Kerja"><i class="fas fa-calendar-alt"></i></a>';
+                    $btn .= ' <a href="'.route('admin.work-schedules.edit', $row->id).'" class="btn btn-info btn-sm mr-1" title="Setting Jam Kerja"><i class="fas fa-clock"></i></a>';
+                    $btn .= ' <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Edit" class="edit btn btn-primary btn-sm editEmployee" title="Edit Karyawan"><i class="fas fa-edit"></i></a>';
+                    $btn .= ' <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteEmployee" title="Hapus Karyawan"><i class="fas fa-trash"></i></a>';
                     return $btn;
                 })
                 ->rawColumns(['action'])
@@ -31,6 +33,18 @@ class EmployeeController extends Controller
 
         $branches = Branch::all(); // Untuk dropdown di form tambah/edit
         return view('admin.employees.index', compact('branches'));
+    }
+
+    public function getWorkScheduleDetails(User $user)
+    {
+        $schedules = $user->workSchedules()->get()->mapWithKeys(function ($item) {
+            return [strtolower($item['day']) => $item];
+        });
+        
+        // Untuk debug di hosting, Anda bisa akses URL ini: /admin/employees/{id}/schedule-details
+        // dd($schedules->toArray());
+
+        return response()->json($schedules);
     }
 
     public function store(Request $request)
@@ -99,41 +113,4 @@ class EmployeeController extends Controller
         return response()->json($employee);
     }
 
-    public function workSchedule($id)
-    {
-        $employee = User::findOrFail($id);
-        $schedules = $employee->workSchedules()->get();
-        return response()->json($schedules);
-    }
-
-    public function saveWorkSchedule(Request $request, $id)
-    {
-        $employee = User::findOrFail($id);
-        $days = $request->input('days', []);
-        $mapDays = [
-            'senin','selasa','rabu','kamis','jumat','sabtu','minggu'
-        ];
-        foreach ($mapDays as $day) {
-            $data = $days[$day] ?? null;
-            if ($day === 'minggu') {
-                // Minggu selalu libur
-                $isHoliday = true;
-                $clockIn = null;
-                $clockOut = null;
-            } else {
-                $isHoliday = isset($data['is_holiday']) && $data['is_holiday'] ? true : false;
-                $clockIn = $data['clock_in'] ?? null;
-                $clockOut = $data['clock_out'] ?? null;
-            }
-            $employee->workSchedules()->updateOrCreate(
-                ['day' => $day],
-                [
-                    'clock_in' => $clockIn,
-                    'clock_out' => $clockOut,
-                    'is_holiday' => $isHoliday
-                ]
-            );
-        }
-        return response()->json(['success' => true]);
-    }
 }

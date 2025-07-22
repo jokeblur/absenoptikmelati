@@ -1,13 +1,16 @@
 <?php
 namespace App\Http\Controllers;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;// Admin Controllers
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+// Admin Controllers
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\LeaveController as AdminLeaveController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
 use App\Http\Controllers\Admin\LateEmployeeController;
 use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use App\Http\Controllers\Admin\WorkScheduleController;
 
 // Employee Controllers
 
@@ -26,10 +29,10 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     // Arahkan user ke dashboard yang sesuai setelah login berdasarkan role
-    if (auth()->check()) {
-        if (auth()->user()->role === 'admin') {
+    if (Auth::check()) {
+        if (Auth::user()->role === 'admin') {
             return redirect()->route('admin.dashboard');
-        } elseif (auth()->user()->role === 'karyawan') {
+        } elseif (Auth::user()->role === 'karyawan') {
             return redirect()->route('employee.dashboard');
         }
     }
@@ -53,9 +56,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('profile/password', [\App\Http\Controllers\Admin\AdminController::class, 'updatePassword'])->name('profile.password');
 
     // Rute untuk Manajemen Karyawan
-    Route::get('employees/{employee}/work-schedule', [\App\Http\Controllers\Admin\EmployeeController::class, 'workSchedule'])->where('employee', '[0-9]+');
-    Route::post('employees/{employee}/work-schedule', [\App\Http\Controllers\Admin\EmployeeController::class, 'saveWorkSchedule'])->where('employee', '[0-9]+');
+    Route::get('employees/{user}/schedule-details', [AdminEmployeeController::class, 'getWorkScheduleDetails'])->name('employees.schedule-details');
     Route::resource('employees', AdminEmployeeController::class); // Ini akan membuat CRUD routes
+    Route::resource('work-schedules', WorkScheduleController::class)
+        ->parameters(['work-schedules' => 'user'])
+        ->except(['create', 'store', 'show', 'destroy']);
     // Contoh: /admin/employees, /admin/employees/create, /admin/employees/{id}, etc.
     
 
@@ -109,6 +114,8 @@ Route::middleware(['auth', 'employee'])->prefix('employee')->name('employee.')->
     // Absensi
     Route::post('/absensi/masuk', [EmployeeAttendanceController::class, 'clockIn'])->name('absensi.clock_in');
     Route::post('/absensi/pulang', [EmployeeAttendanceController::class, 'clockOut'])->name('absensi.clock_out');
+    Route::post('/absensi/istirahat/mulai', [EmployeeAttendanceController::class, 'breakStart'])->name('absensi.break_start');
+    Route::post('/absensi/istirahat/selesai', [EmployeeAttendanceController::class, 'breakEnd'])->name('absensi.break_end');
 
     // Pengajuan Cuti & Izin
     Route::get('/pengajuan', [LeavePermissionController::class, 'index'])->name('pengajuan.index');

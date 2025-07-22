@@ -10,6 +10,7 @@ use App\Models\Attendance;
 use App\Models\Leave;
 use App\Models\Permission;
 use App\Models\Branch;
+use App\Models\WorkSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -20,36 +21,38 @@ class EmployeeController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $today = Carbon::today()->toDateString(); // hasil: '2024-06-08'
-        // dd($today);
+        $today = Carbon::now();
+        $todayString = $today->toDateString();
 
-        // Ambil record absensi hari ini untuk user yang sedang login
         $attendanceToday = Attendance::where('user_id', $user->id)
-    ->whereDate('date', $today)
-    ->first();
-    // dd($today);
-        // Tentukan status absensi
+            ->whereDate('date', $todayString)
+            ->first();
+
         $hasClockedIn = false;
         $hasClockedOut = false;
 
         if ($attendanceToday) {
-            if ($attendanceToday->check_in !== null) {
-                $hasClockedIn = true;
-            }
-            if ($attendanceToday->check_out !== null) {
-                $hasClockedOut = true;
-            }
+            $hasClockedIn = !is_null($attendanceToday->check_in);
+            $hasClockedOut = !is_null($attendanceToday->check_out);
+        }
+
+        $workSchedules = WorkSchedule::where('user_id', $user->id)
+            ->get()
+            ->keyBy('day');
+
+        // Get current day's schedule and day name
+        $dayOfWeek = strtolower($today->format('l'));
+        $todaySchedule = $workSchedules->get($dayOfWeek);
+        $dayName = WorkSchedule::getWorkDays()[$dayOfWeek] ?? ucfirst($dayOfWeek);
+        if ($dayOfWeek === 'sunday') {
+            $dayName = 'Minggu';
         }
 
 
-        // Debug log
-        // Log::info('AttendanceToday', [
-        //     'user_id' => $user->id,
-        //     'today' => $today,
-        //     'attendanceToday' => $attendanceToday
-        // ]);
-
-        return view('employee.dashboard', compact('hasClockedIn', 'hasClockedOut', 'attendanceToday'));
+        return view('employee.dashboard', compact(
+            'hasClockedIn', 'hasClockedOut', 'attendanceToday', 'workSchedules',
+            'dayName', 'todaySchedule'
+        ));
     }
 
     /**

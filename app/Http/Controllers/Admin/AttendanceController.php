@@ -73,6 +73,12 @@ class AttendanceController extends Controller
                 ->addColumn('check_out_time', function(Attendance $attendance) {
                     return $attendance->check_out ? Carbon::parse($attendance->check_out)->format('H:i:s') : '-';
                 })
+                ->addColumn('break_start_time', function(Attendance $attendance) {
+                    return $attendance->break_start ? Carbon::parse($attendance->break_start)->format('H:i:s') : '-';
+                })
+                ->addColumn('break_end_time', function(Attendance $attendance) {
+                    return $attendance->break_end ? Carbon::parse($attendance->break_end)->format('H:i:s') : '-';
+                })
                 ->addColumn('time', function(Attendance $attendance) {
                     if ($attendance->check_in) {
                         return Carbon::parse($attendance->check_in)->format('H:i:s');

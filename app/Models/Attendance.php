@@ -14,7 +14,10 @@ class Attendance extends Model
         'timestamp',
         'date',
         'check_in',
-        'check_out',        
+        'check_out',
+        'break_start',
+        'break_end',
+        'break_late_minutes',
         'type',
         'latitude_in',
         'longitude_in',
@@ -30,6 +33,8 @@ class Attendance extends Model
         'date' => 'date',
         'check_in' => 'datetime',
         'check_out' => 'datetime',
+        'break_start' => 'datetime',
+        'break_end' => 'datetime',
         'timestamp' => 'datetime',
     ];
 

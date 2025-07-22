@@ -201,23 +201,24 @@
         
         <h2 class="mt-4">Selamat Datang, {{ Auth::user()->name }}!</h2>
         <p class="text-muted">Cabang: {{ Auth::user()->branch->name ?? 'Belum Ditentukan' }}</p>
-        <p class="h5 mt-3">Jam Sekarang: <span id="current-time"></span></p>
+        <p class="h5 mt-3"><i class="fas fa-calendar-day me-2"></i><strong>{{ $dayName }}</strong>, <span id="current-time"></span></p>
 
-        {{-- Tampilkan Jam Masuk Kustom --}}
-        @if (Auth::user()->custom_clock_in_time)
-            <p class="h5 mt-2">Jam Masuk Kustom Anda: <span class="badge bg-info">{{ \Carbon\Carbon::parse(Auth::user()->custom_clock_in_time)->format('H:i') }}</span></p>
-        @else
-            <p class="h5 mt-2 text-muted">Jam Masuk Kustom: Belum Diatur</p>
-        @endif
-
-        {{-- Tampilkan Jam Pulang Kustom --}}
-        @if (Auth::user()->custom_clock_out_time)
-            <p class="h5 mt-2">Jam Pulang Kustom Anda: <span class="badge bg-info">{{ \Carbon\Carbon::parse(Auth::user()->custom_clock_out_time)->format('H:i') }}</span></p>
-        @else
-            <p class="h5 mt-2 text-muted">Jam Pulang Kustom: Belum Diatur</p>
+        @if ($todaySchedule && !$todaySchedule->is_holiday)
+            <p class="text-muted">
+                Jadwal Hari Ini: 
+                <span class="badge bg-success"><i class="fas fa-sign-in-alt me-1"></i> {{ \Carbon\Carbon::parse($todaySchedule->clock_in)->format('H:i') }}</span>
+                -
+                <span class="badge bg-danger"><i class="fas fa-sign-out-alt me-1"></i> {{ \Carbon\Carbon::parse($todaySchedule->clock_out)->format('H:i') }}</span>
+            </p>
         @endif
     </div>
 
+    @if ($todaySchedule && $todaySchedule->is_holiday || $dayName === 'Minggu')
+    <div class="alert alert-info text-center">
+        <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Hari Libur</h4>
+        <p>Hari ini adalah hari libur sesuai dengan jadwal kerja Anda. Tidak perlu melakukan absensi.</p>
+    </div>
+    @else
     <div class="row">
         <div class="col-6 d-grid gap-2">
             @if (!$hasClockedIn)
@@ -246,6 +247,70 @@
             @endif
         </div>
     </div>
+    <div class="row mt-3">
+        <div class="col-6 d-grid gap-2">
+            @if ($hasClockedIn && $attendanceToday && !$attendanceToday->break_start)
+                <button id="breakStartBtn" class="btn btn-info btn-lg">
+                    <i class="fas fa-coffee me-2"></i>Mulai Istirahat
+                </button>
+            @elseif ($hasClockedIn && $attendanceToday && $attendanceToday->break_start)
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-check me-2"></i>Sudah Mulai Istirahat
+                </button>
+            @else
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-coffee me-2"></i>Mulai Istirahat
+                </button>
+            @endif
+        </div>
+        <div class="col-6 d-grid gap-2">
+            @if ($hasClockedIn && $attendanceToday && $attendanceToday->break_start && !$attendanceToday->break_end)
+                <button id="breakEndBtn" class="btn btn-warning btn-lg">
+                    <i class="fas fa-play me-2"></i>Selesai Istirahat
+                </button>
+            @elseif ($hasClockedIn && $attendanceToday && $attendanceToday->break_start && $attendanceToday->break_end)
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-check me-2"></i>Sudah Selesai Istirahat
+                </button>
+            @else
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-play me-2"></i>Selesai Istirahat
+                </button>
+            @endif
+        </div>
+    </div>
+    
+    {{-- Informasi Jadwal Istirahat Hari Ini --}}
+    @if ($todaySchedule && !$todaySchedule->is_holiday && $todaySchedule->break_start_time && $todaySchedule->break_end_time)
+        <div class="alert alert-info mt-3 mb-0">
+            <div class="row text-center">
+                <div class="col-12">
+                    <h6 class="mb-2">
+                        <i class="fas fa-clock me-2"></i>Jadwal Istirahat Hari Ini ({{ $dayName }})
+                    </h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Mulai:</strong> 
+                            <span class="badge bg-primary">
+                                {{ \Carbon\Carbon::parse($todaySchedule->break_start_time)->format('H:i') }}
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Selesai:</strong> 
+                            <span class="badge bg-warning text-dark">
+                                {{ \Carbon\Carbon::parse($todaySchedule->break_end_time)->format('H:i') }}
+                            </span>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Absen istirahat hanya bisa dilakukan tepat pada jadwal yang telah ditentukan, tanpa toleransi waktu.
+                    </small>
+                </div>
+            </div>
+        </div>
+    @endif
+    @endif
 
     <div class="card mt-4">
         <div class="card-header">
@@ -320,6 +385,54 @@
                     </div>
                 </div>
                 
+                {{-- Break Times --}}
+                <div class="row mt-2">
+                    <div class="col-md-6 text-center">
+                        <div class="attendance-status-item">
+                            <h6 class="text-info">
+                                <i class="fas fa-coffee me-2"></i>Mulai Istirahat
+                            </h6>
+                            @if ($attendanceToday->break_start)
+                                <p class="mb-1">
+                                    <strong>Jam:</strong> 
+                                    <span class="badge bg-info">
+                                        {{ \Carbon\Carbon::parse($attendanceToday->break_start)->format('H:i:s') }}
+                                    </span>
+                                </p>
+                            @else
+                                <p class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>Belum mulai istirahat
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <div class="attendance-status-item">
+                            <h6 class="text-warning text-dark">
+                                <i class="fas fa-play me-2"></i>Selesai Istirahat
+                            </h6>
+                            @if ($attendanceToday->break_end)
+                                <p class="mb-1">
+                                    <strong>Jam:</strong> 
+                                    <span class="badge bg-warning text-dark">
+                                        {{ \Carbon\Carbon::parse($attendanceToday->break_end)->format('H:i:s') }}
+                                    </span>
+                                </p>
+                                @if ($attendanceToday->break_late_minutes > 0)
+                                    <p class="text-danger small">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Terlambat {{ $attendanceToday->break_late_minutes }} menit
+                                    </p>
+                                @endif
+                            @else
+                                <p class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>Belum selesai istirahat
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
                 @if ($attendanceToday->check_in && $attendanceToday->check_out)
                     <hr class="my-3">
                     <div class="attendance-summary">
@@ -331,11 +444,31 @@
                                 @php
                                     $checkIn = \Carbon\Carbon::parse($attendanceToday->check_in);
                                     $checkOut = \Carbon\Carbon::parse($attendanceToday->check_out);
-                                    $workHours = $checkIn->diffInHours($checkOut);
-                                    $workMinutes = $checkIn->diffInMinutes($checkOut) % 60;
+                                    $totalDurationMinutes = $checkIn->diffInMinutes($checkOut);
+                                    
+                                    $breakDurationMinutes = 0;
+                                    if ($attendanceToday->break_start && $attendanceToday->break_end) {
+                                        $breakStart = \Carbon\Carbon::parse($attendanceToday->break_start);
+                                        $breakEnd = \Carbon\Carbon::parse($attendanceToday->break_end);
+                                        $breakDurationMinutes = $breakStart->diffInMinutes($breakEnd);
+                                    }
+                                    
+                                    $workDurationMinutes = $totalDurationMinutes - $breakDurationMinutes;
+                                    if ($workDurationMinutes < 0) $workDurationMinutes = 0;
+                                    
+                                    $workHours = floor($workDurationMinutes / 60);
+                                    $workMinutes = $workDurationMinutes % 60;
                                 @endphp
+                                @if ($breakDurationMinutes > 0)
                                 <p class="mb-1">
-                                    <strong>Total Jam Kerja:</strong> 
+                                    <strong>Total Jam Istirahat:</strong>
+                                    <span class="badge bg-secondary">
+                                        {{ floor($breakDurationMinutes / 60) }} jam {{ $breakDurationMinutes % 60 }} menit
+                                    </span>
+                                </p>
+                                @endif
+                                <p class="mb-1">
+                                    <strong>Total Jam Kerja Efektif:</strong> 
                                     <span class="badge bg-info">
                                         {{ $workHours }} jam {{ $workMinutes }} menit
                                     </span>
@@ -397,6 +530,56 @@
                     <span class="location-label">Status Lokasi:</span>
                     <span class="location-value" id="location-status-badge">-</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Work Schedule --}}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>Jadwal Kerja Anda
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Hari</th>
+                            <th>Jam Masuk</th>
+                            <th>Jam Pulang</th>
+                            <th>Istirahat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                            $dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                        @endphp
+                        @foreach ($days as $index => $day)
+                            @php
+                                $schedule = $workSchedules->get($day);
+                            @endphp
+                            <tr>
+                                <td>{{ $dayNames[$index] }}</td>
+                                @if ($schedule && !$schedule->is_holiday)
+                                    <td><span class="badge bg-success">{{ $schedule->clock_in ? \Carbon\Carbon::parse($schedule->clock_in)->format('H:i') : '-' }}</span></td>
+                                    <td><span class="badge bg-danger">{{ $schedule->clock_out ? \Carbon\Carbon::parse($schedule->clock_out)->format('H:i') : '-' }}</span></td>
+                                    <td>
+                                        @if ($schedule->break_start_time && $schedule->break_end_time)
+                                            <span class="badge bg-info">{{ \Carbon\Carbon::parse($schedule->break_start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->break_end_time)->format('H:i') }}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                @else
+                                    <td colspan="3"><span class="badge bg-secondary">Hari Libur</span></td>
+                                @endif
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -930,6 +1113,43 @@
                         Swal.fire('Gagal!', errorMessage, 'error');
                     }
                 });
+            });
+        });
+
+        // Event listener untuk tombol Mulai Istirahat
+        $('#breakStartBtn').click(function() {
+            $.ajax({
+                url: "{{ route('employee.absensi.break_start') }}",
+                type: "POST",
+                success: function(response) {
+                    Swal.fire('Berhasil!', response.message, 'success')
+                        .then(() => location.reload());
+                },
+                error: function(xhr) {
+                    let errorMessage = xhr.responseJSON.message || 'Terjadi kesalahan.';
+                    Swal.fire('Gagal!', errorMessage, 'error');
+                }
+            });
+        });
+
+        // Event listener untuk tombol Selesai Istirahat
+        $('#breakEndBtn').click(function() {
+            $.ajax({
+                url: "{{ route('employee.absensi.break_end') }}",
+                type: "POST",
+                success: function(response) {
+                    let message = response.message;
+                    let icon = 'success';
+                    if (response.late_minutes > 0) {
+                        icon = 'warning';
+                    }
+                    Swal.fire('Berhasil!', message, icon)
+                        .then(() => location.reload());
+                },
+                error: function(xhr) {
+                    let errorMessage = xhr.responseJSON.message || 'Terjadi kesalahan.';
+                    Swal.fire('Gagal!', errorMessage, 'error');
+                }
             });
         });
     });

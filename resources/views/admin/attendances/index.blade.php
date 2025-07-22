@@ -88,12 +88,14 @@
                                 <th>Nama Karyawan</th>
                                 <th>Cabang</th>
                                 <th>Tanggal</th>
-                                <th>Absen Masuk</th>                                
+                                <th>Absen Masuk</th>
+                                <th>Mulai Istirahat</th>
+                                <th>Selesai Istirahat</th>
+                                <th>Absen Pulang</th>
                                 <th>Status</th>
                                 <th>Keterlambatan</th>
                                 <th>Lokasi</th>
                                 <th>Tipe</th>
-                                <th>Absen Pulang</th>
                                 <th width="150px">Aksi</th>
                             </tr>
                         </thead>
@@ -342,12 +344,14 @@
                   {data: 'employee_name', name: 'user.name'},
                   {data: 'branch_name', name: 'branch.name'}, // Nama cabang
                   {data: 'date', name: 'attendances.created_at'}, // Tanggal dari timestamp (sudah dd/mm/yyyy dari backend)
-                  {data: 'time', name: 'attendances.created_at'}, // Waktu dari timestamp               
+                  {data: 'time', name: 'attendances.created_at'}, // Waktu dari timestamp
+                  {data: 'break_start_time', name: 'break_start', orderable: false, searchable: false},
+                  {data: 'break_end_time', name: 'break_end', orderable: false, searchable: false},
+                  {data: 'check_out_time', name: 'check_out', orderable: false, searchable: false}, // Kolom absen pulang
                   {data: 'status_badge', name: 'status', orderable: false, searchable: false},
                   {data: 'late_badge', name: 'late', orderable: false, searchable: false}, // Kolom keterlambatan
                   {data: 'location', name: 'location', orderable: false, searchable: false},
                   {data: 'type_badge', name: 'type', orderable: false, searchable: false},
-                  {data: 'check_out_time', name: 'check_out_time', orderable: false, searchable: false}, // Kolom absen pulang
                   {data: 'action', name: 'action', orderable: false, searchable: false},
               ],
               order: [[3, 'desc'], [4, 'desc']] // Order by date then time (terbaru di atas)
