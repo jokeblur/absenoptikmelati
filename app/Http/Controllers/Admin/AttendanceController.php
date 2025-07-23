@@ -130,7 +130,8 @@ class AttendanceController extends Controller
                     return '-';
                 })
                 ->addColumn('action', function($row){
-                    $btn = '<a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteAttendance"><i class="fas fa-trash"></i></a>';
+                    $btn = '<a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$row->id.'" data-original-title="Edit" class="btn btn-info btn-sm editAttendance"><i class="fas fa-edit"></i></a>';
+                    $btn .= ' <a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$row->id.'" data-original-title="Delete" class="btn btn-danger btn-sm deleteAttendance"><i class="fas fa-trash"></i></a>';
                     return $btn;
                 })
                 ->rawColumns(['type_badge', 'status_badge', 'late_badge', 'action'])
@@ -615,18 +616,32 @@ class AttendanceController extends Controller
      */
     public function show($id)
     {
-        $attendance = Attendance::find($id);
+        $attendance = Attendance::with('user')->find($id);
         if (!$attendance) {
             return response()->json(['error' => 'Catatan absensi tidak ditemukan.'], 404);
         }
         
+
+        
         // Convert to expected format for frontend
+        // Since check_in and check_out are cast as datetime in the model,
+        // they are already Carbon instances
+        $timestamp = null;
+        
+        if ($attendance->check_in) {
+            $timestamp = $attendance->check_in->format('d/m/Y H:i:s');
+        } elseif ($attendance->check_out) {
+            $timestamp = $attendance->check_out->format('d/m/Y H:i:s');
+        } else {
+            // No check_in or check_out, use date only
+            $timestamp = $attendance->date->format('d/m/Y') . ' 00:00:00';
+        }
+        
         $data = [
             'id' => $attendance->id,
             'user_id' => $attendance->user_id,
-            'timestamp' => $attendance->check_in ? 
-                Carbon::parse($attendance->date . ' ' . $attendance->check_in)->format('Y-m-d H:i:s') :
-                Carbon::parse($attendance->date . ' ' . $attendance->check_out)->format('Y-m-d H:i:s'),
+            'branch_id' => $attendance->user->branch_id ?? null,
+            'timestamp' => $timestamp,
             'type' => $attendance->check_in ? 'check_in' : 'check_out',
             'status' => $attendance->status_in ?? $attendance->status_out ?? 'on_time',
             'latitude' => $attendance->latitude_in ?? $attendance->latitude_out,
@@ -647,7 +662,7 @@ class AttendanceController extends Controller
             'user_id' => 'required|exists:users,id',
             'branch_id' => 'nullable|exists:branches,id',
             'type' => 'required|in:check_in,check_out',
-            'timestamp' => 'required|date_format:Y-m-d H:i:s',
+            'timestamp' => 'required',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'status' => 'required|in:on_time,late,early_out,no_check_out,absent',
@@ -660,8 +675,17 @@ class AttendanceController extends Controller
             return response()->json(['error' => 'Catatan absensi tidak ditemukan.'], 404);
         }
 
-        $date = Carbon::parse($request->timestamp)->format('Y-m-d');
-        $time = Carbon::parse($request->timestamp)->format('H:i:s');
+        // Parse timestamp dari format d/m/Y H:i:s ke Y-m-d H:i:s
+        try {
+            $dt = \DateTime::createFromFormat('d/m/Y H:i:s', $request->timestamp);
+            if (!$dt) {
+                throw new \Exception('Format tanggal & waktu tidak valid. Gunakan format dd/mm/yyyy HH:mm:ss');
+            }
+            $date = $dt->format('Y-m-d');
+            $time = $dt->format('H:i:s');
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
 
         $updateData = [
             'user_id' => $request->user_id,

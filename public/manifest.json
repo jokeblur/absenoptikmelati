@@ -1,0 +1,21 @@
+{
+    "name": "Absensi Optik Melati",
+    "short_name": "Absensi Optik",
+    "start_url": "/absensioptik/public/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#dc2626",
+    "description": "Aplikasi Absensi Karyawan Optik Melati",
+    "icons": [
+        {
+            "src": "/absensioptik/public/image/optik-melati.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/absensioptik/public/image/optik-melati.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

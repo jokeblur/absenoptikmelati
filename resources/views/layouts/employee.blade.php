@@ -21,6 +21,12 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     
+    <link rel="manifest" href="/absensioptik/public/manifest.json">
+    <meta name="theme-color" content="#dc2626">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -39,11 +45,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('{{ asset('image/optikmelati.jpg') }}');
-            background-size: cover;
-            background-position: center;
+            background-image: url('/absensioptik/public/image/optikmelati.jpg');
+            background-size: contain;
+            background-position: center center;
             background-repeat: no-repeat;
-            opacity: 0.05;
+            opacity: 0.08;
             z-index: -1;
         }
         
@@ -52,67 +58,120 @@
             font-family: 'Poppins', sans-serif;
         }
         
-        /* Top Header with Logo and Logout */
-        .top-header {
+        /* Profile Section - Left Side */
+        .profile-section {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-bottom: 3px solid #dc2626;
+            padding: 18px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #dc2626;
+            max-width: 380px;
+            min-width: 320px;
         }
         
-        .top-header .logo-section {
+        .profile-section .profile-photo {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid #dc2626;
         }
         
-        .top-header .logo-section img {
-            width: 40px;
-            height: 40px;
+        .profile-section .profile-photo img {
+            width: 80%;
+            height: 80%;
             object-fit: contain;
         }
         
-        .top-header .logo-section .brand-text {
+        .profile-section .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+        }
+        
+        .profile-section .profile-info .name {
             font-weight: 600;
             font-size: 1.1rem;
             color: #dc2626;
+            white-space: nowrap;
+            overflow: hidden;
+            text-decoration: none;
+            line-height: 1.2;
         }
         
-        .top-header .logout-btn {
-            background: #dc2626;
+        .profile-section .profile-info .branch {
+            font-size: 0.85rem;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        
+        .profile-section:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.2);
+        }
+        
+        /* Logout Button - Right Side */
+        .logout-section {
+            position: fixed;
+            top: 40px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Profile Logo - Removed since moved to left */
+        .profile-logo {
+            display: none;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 50px;
             display: flex;
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+            text-decoration: none;
         }
         
-        .top-header .logout-btn:hover {
-            background: #b91c1c;
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            color: white;
         }
         
-        .top-header .logout-btn i {
+        .logout-btn i {
             font-size: 1.1rem;
         }
         
         /* Main Content */
         .main-content {
-            margin-top: 80px;
             margin-bottom: 100px;
             padding: 20px;
             position: relative;
@@ -156,7 +215,7 @@
             left: 0;
             width: 100%;
             background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            padding: 15px 0;
+            padding: 18px 0;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             border-top: 3px solid #ef4444;
@@ -178,9 +237,9 @@
             text-decoration: none;
             color: rgba(255, 255, 255, 0.8);
             transition: all 0.3s ease;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 12px;
-            min-width: 60px;
+            min-width: 70px;
         }
         
         .footer-nav .nav-item:hover,
@@ -191,13 +250,13 @@
         }
         
         .footer-nav .nav-item i {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
+            font-size: 1.6rem;
+            margin-bottom: 6px;
             display: block;
         }
         
         .footer-nav .nav-item span {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 500;
             text-align: center;
         }
@@ -220,19 +279,19 @@
         }
         
         .btn-success {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             border: none;
             border-radius: 12px;
             padding: 12px 25px;
             font-weight: 500;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
         }
         
         .btn-success:hover {
-            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
         }
         
         .btn-info {
@@ -309,9 +368,9 @@
         }
         
         .alert-success {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            color: #166534;
-            border-left: 4px solid #059669;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
         }
         
         .alert-warning {
@@ -339,7 +398,7 @@
         }
         
         .badge.bg-success {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
         }
         
         .badge.bg-info {
@@ -406,29 +465,79 @@
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
-            .top-header {
-                padding: 12px 15px;
+            .profile-section {
+                top: 15px;
+                left: 15px;
+                padding: 15px 20px;
+                max-width: 280px;
+                min-width: 260px;
+                gap: 12px;
             }
             
-            .top-header .logo-section .brand-text {
+            .profile-section .profile-photo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .profile-section .profile-info .name {
                 font-size: 1rem;
             }
             
-            .top-header .logout-btn {
-                padding: 8px 12px;
+            .profile-section .profile-info .branch {
+                font-size: 0.8rem;
+            }
+            
+            .logout-section {
+                top: 40px;
+                right: 15px;
+                gap: 8px;
+            }
+            
+            .logout-btn {
+                padding: 10px 12px;
             }
             
             .main-content {
-                padding: 15px;
-                margin-top: 70px;
+                padding: 50px;
+                margin-bottom: 120px;
+                margin-top: 80px;
+            }
+            
+            .footer-nav {
+                padding: 20px 0;
+            }
+            
+            .footer-nav .nav-item {
+                padding: 12px 8px;
+                min-width: 75px;
             }
             
             .footer-nav .nav-item i {
-                font-size: 1.3rem;
+                font-size: 1.8rem;
+                margin-bottom: 8px;
             }
             
             .footer-nav .nav-item span {
-                font-size: 0.7rem;
+                font-size: 0.85rem;
+                font-weight: 600;
+            }
+            
+            /* Jam yang lebih besar di mobile */
+            .time-display, .clock-display {
+                font-size: 2.5rem !important;
+                font-weight: 700 !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .main-content {
+                margin-top: 90px;
+            }
+            
+            /* Jam yang lebih besar di desktop */
+            .time-display, .clock-display {
+                font-size: 3rem !important;
+                font-weight: 700 !important;
             }
         }
         
@@ -475,13 +584,24 @@
         <div class="loading-spinner"></div>
     </div>
 
-    <!-- Top Header -->
-    <div class="top-header">
-        <div class="logo-section">
-            <img src="{{ asset('image/optik-melati.png') }}" alt="Logo Optik Melati">
-            <div class="brand-text">Absensi Optik Melati</div>
+    <!-- Profile Section - Left Side -->
+    <div class="profile-section">
+        <a href="{{ route('employee.profile') }}" class="profile-photo">
+            <img src="{{ asset('image/optik-melati.png') }}" alt="Optik Melati">
+        </a>
+        <div class="profile-info">
+            <a href="{{ route('employee.profile') }}" class="name">{{ Auth::user()->name }}</a>
+            <div class="branch">{{ Auth::user()->branch->name ?? 'Tidak ada cabang' }}</div>
         </div>
-        
+    </div>
+
+    <!-- Floating Logout Section - Right Side -->
+    <div class="logout-section">
+        @if(Auth::user()->role === 'admin')
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-warning mb-2" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%; padding: 0; font-size: 1.5rem;">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        @endif
         <form action="{{ route('logout') }}" method="POST" class="d-inline" id="logoutForm">
             @csrf
             <button type="submit" class="logout-btn">
@@ -522,6 +642,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> {{-- jQuery untuk AJAX --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eOzrjh+O7O/1l8" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> {{-- SweetAlert2 untuk notifikasi --}}
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
         // Setup CSRF token for all AJAX requests
@@ -567,7 +690,7 @@
             $('body').addClass('loaded');
             
             // Add touch feedback for mobile
-            $('.footer-nav .nav-item, .btn, .top-header .logout-btn').on('touchstart', function() {
+            $('.footer-nav .nav-item, .btn, .logout-btn, .profile-logo').on('touchstart', function() {
                 $(this).addClass('touching');
             }).on('touchend touchcancel', function() {
                 $(this).removeClass('touching');
@@ -654,5 +777,49 @@
             .appendTo('head');
     </script>
     @stack('scripts')
+    <script>
+// Push Notification Registration
+const VAPID_PUBLIC_KEY = "BLlEaEhdu4qVHxcr0yZUZEwJ8GKnlKTgO3skM-QhIB_AGAttEJUmI4G0Zh5cZo17re23cLF9o0fuZrBlvh6tlI0";
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+    navigator.serviceWorker.ready.then(function(registration) {
+        Notification.requestPermission().then(function(permission) {
+            if (permission === 'granted') {
+                registration.pushManager.getSubscription().then(function(existingSub) {
+                    if (!existingSub) {
+                        registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                        }).then(function(subscription) {
+                            // Kirim subscription ke server
+                            fetch('/employee/save-subscription', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                body: JSON.stringify(subscription)
+                            });
+                        });
+                    }
+                });
+            }
+        });
+    });
+}
+</script>
 </body>
 </html>

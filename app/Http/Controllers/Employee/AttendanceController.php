@@ -11,6 +11,7 @@ use App\Models\Branch; // Pastikan ini di-use jika Anda menggunakan model Branch
 use App\Models\WorkSchedule; // Pastikan ini di-use
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\PushNotificationHelper;
 
 class AttendanceController extends Controller
 {
@@ -126,6 +127,21 @@ class AttendanceController extends Controller
             ]
         );
 
+        if ($user->push_subscription) {
+            PushNotificationHelper::sendPushNotification(
+                $user->push_subscription,
+                'Absen Masuk Berhasil',
+                'Selamat bekerja, jangan lupa semangat!'
+            );
+            if (now()->isSaturday()) {
+                PushNotificationHelper::sendPushNotification(
+                    $user->push_subscription,
+                    'Hore!',
+                    'Besok libur!'
+                );
+            }
+        }
+
         return response()->json([
             'message' => 'Absen masuk berhasil!',
             'status_in' => $statusIn,
@@ -192,6 +208,14 @@ class AttendanceController extends Controller
             'status_out' => $statusOut,
         ]);
 
+        if ($user->push_subscription) {
+            PushNotificationHelper::sendPushNotification(
+                $user->push_subscription,
+                'Absen Pulang Berhasil',
+                'Selamat istirahat, jangan lupa istirahat!'
+            );
+        }
+
         return response()->json(['message' => 'Absen pulang berhasil!'], 200);
     }
 
@@ -230,6 +254,14 @@ class AttendanceController extends Controller
         }
 
         $attendance->update(['break_start' => $currentTime]);
+
+        if ($user->push_subscription) {
+            PushNotificationHelper::sendPushNotification(
+                $user->push_subscription,
+                'Waktunya Istirahat!',
+                'Selamat istirahat, jangan lupa istirahat!'
+            );
+        }
 
         return response()->json(['message' => 'Istirahat dimulai.']);
     }

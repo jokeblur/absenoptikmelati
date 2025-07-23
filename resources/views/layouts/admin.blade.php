@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
   <title>Absensi Optik Melati | Dashboard</title>
   
   <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -32,61 +32,203 @@
 
   {{-- Custom CSS for responsive tables --}}
   <style>
-    /* Responsive table improvements */
+    /* Disable DataTables responsive and use horizontal scroll instead */
     .table-responsive {
-      overflow-x: auto;
+      overflow-x: auto !important;
       -webkit-overflow-scrolling: touch;
+      border: 1px solid #dee2e6;
+      border-radius: 0.375rem;
     }
     
     .table-responsive table {
       min-width: 800px; /* Ensure minimum width for readability */
+      margin-bottom: 0;
+    }
+    
+    /* Hide DataTables responsive controls and arrows */
+    .dtr-control,
+    .dtr-details,
+    .child,
+    .responsive-control,
+    .dataTables_wrapper .dt-button.buttons-columnVisibility,
+    .dt-button-collection {
+      display: none !important;
+    }
+    
+    /* Disable responsive features in DataTables */
+    table.dataTable.dtr-inline.collapsed > tbody > tr > td.child,
+    table.dataTable.dtr-inline.collapsed > tbody > tr > th.child,
+    table.dataTable.dtr-inline.collapsed > tbody > tr > td.dataTables_empty {
+      display: none !important;
+    }
+    
+    table.dataTable > thead > tr > th.control,
+    table.dataTable > thead > tr > td.control {
+      display: none !important;
+    }
+    
+    table.dataTable > tbody > tr > th.control,
+    table.dataTable > tbody > tr > td.control {
+      display: none !important;
     }
     
     /* Mobile-first responsive design */
     @media (max-width: 768px) {
+      .content-wrapper {
+        padding: 0.5rem;
+      }
+      
       .card-body {
-        padding: 0.75rem;
+        padding: 0.5rem;
       }
       
       .table-responsive {
-        margin: 0 -0.75rem;
+        margin: 0 -0.5rem;
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
       }
       
       .table-responsive table {
-        font-size: 0.875rem;
+        font-size: 0.8rem;
+        min-width: 1000px; /* Wider for mobile to ensure scroll */
       }
       
       .table-responsive th,
       .table-responsive td {
-        padding: 0.5rem 0.25rem;
+        padding: 0.4rem 0.3rem;
         white-space: nowrap;
-      }
-      
-      /* Hide less important columns on mobile */
-      .table-responsive .d-none-mobile {
-        display: none !important;
+        vertical-align: middle;
       }
       
       /* Make action buttons smaller on mobile */
       .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+      }
+      
+      .btn-group .btn {
+        margin: 0 1px;
       }
     }
     
     @media (max-width: 576px) {
       .table-responsive table {
         font-size: 0.75rem;
+        min-width: 1200px; /* Even wider for small screens */
       }
       
       .table-responsive th,
       .table-responsive td {
-        padding: 0.25rem 0.125rem;
+        padding: 0.3rem 0.25rem;
       }
       
-      /* Stack filter controls on mobile */
-      .filter-row .col-md-3 {
-        margin-bottom: 0.5rem;
+      .btn-sm {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.65rem;
+      }
+    }
+    
+    /* Custom scrollbar for better UX */
+    .table-responsive::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #007bff;
+      border-radius: 4px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: #0056b3;
+    }
+    
+    /* Landscape orientation optimizations */
+    @media screen and (orientation: landscape) and (max-height: 768px) {
+      .content-wrapper {
+        padding: 0.25rem;
+      }
+      
+      .card-body {
+        padding: 0.25rem;
+      }
+      
+      .table-responsive {
+        margin: 0 -0.25rem;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+      }
+      
+      .table-responsive table {
+        font-size: 0.75rem;
+        min-width: 1400px; /* Wider for landscape */
+      }
+      
+      .table-responsive th,
+      .table-responsive td {
+        padding: 0.25rem 0.2rem;
+        line-height: 1.2;
+      }
+      
+      .btn-sm {
+        padding: 0.1rem 0.3rem;
+        font-size: 0.6rem;
+      }
+      
+      .card-header {
+        padding: 0.5rem 1rem;
+      }
+      
+      .card-title {
+        font-size: 1rem;
+      }
+      
+      /* Hide less critical UI elements in landscape */
+      .breadcrumb {
+        font-size: 0.8rem;
+        padding: 0.25rem 0;
+      }
+      
+      /* DataTables controls optimization */
+      .dataTables_wrapper .dataTables_length,
+      .dataTables_wrapper .dataTables_filter,
+      .dataTables_wrapper .dataTables_info,
+      .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem;
+      }
+      
+      .dataTables_wrapper .dataTables_length select,
+      .dataTables_wrapper .dataTables_filter input {
+        font-size: 0.7rem;
+        padding: 0.1rem 0.2rem;
+      }
+    }
+    
+    /* Portrait optimization for mobile */
+    @media screen and (orientation: portrait) and (max-width: 768px) {
+      .table-responsive table {
+        min-width: 1000px;
+      }
+      
+      .card-body {
+        padding: 0.5rem;
+      }
+      
+      /* Show scroll hint on portrait */
+      .table-responsive::after {
+        content: "← Geser untuk melihat lebih banyak →";
+        display: block;
+        text-align: center;
+        font-size: 0.7rem;
+        color: #6c757d;
+        padding: 0.25rem;
+        background: rgba(0, 123, 255, 0.1);
+        border-top: 1px solid #dee2e6;
       }
     }
     
@@ -141,6 +283,8 @@
   </style>
 
   @stack('styles') {{-- Untuk CSS spesifik halaman --}}
+  <link rel="manifest" href="/absensioptik/public/manifest.json">
+  <meta name="theme-color" content="#dc2626">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
@@ -375,5 +519,70 @@ $(document).ready(function() {
 </script>
 
 @stack('scripts') {{-- Untuk JS spesifik halaman --}}
+
+{{-- Orientation change handler --}}
+<script>
+$(document).ready(function() {
+  // Function to handle orientation change
+  function handleOrientationChange() {
+    const isLandscape = window.orientation === 90 || window.orientation === -90;
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      if (isLandscape) {
+        // Show landscape optimization message
+        if (!$('#landscape-notice').length) {
+          $('body').prepend(`
+            <div id="landscape-notice" class="alert alert-info alert-dismissible" style="margin: 0; border-radius: 0; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; font-size: 0.8rem; padding: 0.5rem;">
+              <button type="button" class="close" data-dismiss="alert" style="padding: 0; margin-left: 0.5rem; font-size: 1rem;">
+                <span>&times;</span>
+              </button>
+              <i class="fas fa-mobile-alt"></i> Mode landscape aktif - Tabel lebih mudah dilihat!
+            </div>
+          `);
+        }
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(function() {
+          $('#landscape-notice').fadeOut();
+        }, 3000);
+        
+        // Refresh DataTables to recalculate layout
+        if ($.fn.DataTable) {
+          $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        }
+      } else {
+        // Remove landscape notice in portrait
+        $('#landscape-notice').remove();
+      }
+    }
+  }
+  
+  // Handle orientation change
+  $(window).on('orientationchange', function() {
+    setTimeout(handleOrientationChange, 100);
+  });
+  
+  // Initial check
+  handleOrientationChange();
+  
+  // Handle window resize for desktop
+  $(window).on('resize', function() {
+    if ($.fn.DataTable) {
+      $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    }
+  });
+});
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/absensioptik/public/service-worker.js')
+      .then(function(reg) {
+        // console.log('Service worker registered.', reg);
+      });
+  });
+}
+</script>
 </body>
 </html>

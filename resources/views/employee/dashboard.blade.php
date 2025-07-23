@@ -26,12 +26,20 @@
         font-weight: 500;
     }
     
-    /* Google Maps styling */
+    /* Leaflet Map styling */
     #map {
         height: 400px;
         width: 100%;
         border-radius: 8px;
         margin-top: 10px;
+        z-index: 1;
+    }
+    
+    /* Custom marker styling */
+    .custom-office-marker,
+    .custom-user-marker {
+        background: transparent !important;
+        border: none !important;
     }
     
     .map-info {
@@ -159,6 +167,107 @@
     .empty-attendance .small {
         font-size: 0.875rem;
     }
+
+    /* New styles for day and time display */
+    .day-display {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .time-display-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 120px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        border: 2px solid rgba(220, 38, 38, 0.3);
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        margin: 0 20px;
+    }
+
+    .time-display {
+        font-size: 4rem;
+        font-weight: 800;
+        color: #dc2626;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+        letter-spacing: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        -webkit-background-clip: text;
+        background-clip: text;
+        filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.3));
+    }
+
+    /* Schedule info styling */
+    .schedule-info {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .schedule-info .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    /* Compact alert styling */
+    .alert.py-2 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    .alert.py-2 .badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.5rem;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .day-display {
+            font-size: 1.8rem;
+        }
+        
+        .time-display-container {
+            min-height: 100px;
+            margin: 0 10px;
+            padding: 15px;
+        }
+        
+        .time-display {
+            font-size: 3rem;
+        }
+        
+        .schedule-info .badge {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .day-display {
+            font-size: 1.6rem;
+        }
+        
+        .time-display-container {
+            min-height: 90px;
+            margin: 0 5px;
+            padding: 12px;
+        }
+        
+        .time-display {
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+        }
+        
+        .schedule-info .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+        }
+    }
 </style>
 @endpush
 
@@ -185,7 +294,7 @@
         @endif
         
         {{-- Foto Profil --}}
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             @if(Auth::user()->profile_photo)
                 <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" 
                      alt="Foto Profil" 
@@ -197,19 +306,28 @@
                      class="img-thumbnail rounded-circle" 
                      style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #3498db;">
             @endif
-        </div>
+        </div> -->
         
-        <h2 class="mt-4">Selamat Datang, {{ Auth::user()->name }}!</h2>
-        <p class="text-muted">Cabang: {{ Auth::user()->branch->name ?? 'Belum Ditentukan' }}</p>
-        <p class="h5 mt-3"><i class="fas fa-calendar-day me-2"></i><strong>{{ $dayName }}</strong>, <span id="current-time"></span></p>
+        {{-- Tampilan Hari dan Jam yang Diperbesar --}}
+        <div class="text-center mb-4">
+            <h1 class="day-display mb-2">
+                <i class="fas fa-calendar-day me-2 "></i>
+                <strong>{{ $dayName }}</strong>
+            </h1>
+            <div class="time-display-container">
+                <div class="time-display" id="current-time"></div>
+            </div>
+        </div>
 
         @if ($todaySchedule && !$todaySchedule->is_holiday)
-            <p class="text-muted">
-                Jadwal Hari Ini: 
-                <span class="badge bg-success"><i class="fas fa-sign-in-alt me-1"></i> {{ \Carbon\Carbon::parse($todaySchedule->clock_in)->format('H:i') }}</span>
-                -
-                <span class="badge bg-danger"><i class="fas fa-sign-out-alt me-1"></i> {{ \Carbon\Carbon::parse($todaySchedule->clock_out)->format('H:i') }}</span>
-            </p>
+            <div class="schedule-info mb-3">
+                <span class="text-muted small">
+                    <i class="fas fa-clock me-1"></i>Jadwal: 
+                    <span class="badge bg-primary mx-1">{{ \Carbon\Carbon::parse($todaySchedule->clock_in)->format('H:i') }}</span>
+                    -
+                    <span class="badge bg-danger mx-1">{{ \Carbon\Carbon::parse($todaySchedule->clock_out)->format('H:i') }}</span>
+                </span>
+            </div>
         @endif
     </div>
 
@@ -250,7 +368,7 @@
     <div class="row mt-3">
         <div class="col-6 d-grid gap-2">
             @if ($hasClockedIn && $attendanceToday && !$attendanceToday->break_start)
-                <button id="breakStartBtn" class="btn btn-info btn-lg">
+                <button id="breakStartBtn" class="btn btn-warning btn-lg">
                     <i class="fas fa-coffee me-2"></i>Mulai Istirahat
                 </button>
             @elseif ($hasClockedIn && $attendanceToday && $attendanceToday->break_start)
@@ -282,31 +400,17 @@
     
     {{-- Informasi Jadwal Istirahat Hari Ini --}}
     @if ($todaySchedule && !$todaySchedule->is_holiday && $todaySchedule->break_start_time && $todaySchedule->break_end_time)
-        <div class="alert alert-info mt-3 mb-0">
-            <div class="row text-center">
-                <div class="col-12">
-                    <h6 class="mb-2">
-                        <i class="fas fa-clock me-2"></i>Jadwal Istirahat Hari Ini ({{ $dayName }})
-                    </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <strong>Mulai:</strong> 
-                            <span class="badge bg-primary">
-                                {{ \Carbon\Carbon::parse($todaySchedule->break_start_time)->format('H:i') }}
-                            </span>
-                        </div>
-                        <div class="col-6">
-                            <strong>Selesai:</strong> 
-                            <span class="badge bg-warning text-dark">
-                                {{ \Carbon\Carbon::parse($todaySchedule->break_end_time)->format('H:i') }}
-                            </span>
-                        </div>
-                    </div>
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Absen istirahat hanya bisa dilakukan tepat pada jadwal yang telah ditentukan, tanpa toleransi waktu.
-                    </small>
-                </div>
+        <div class="alert alert-info mt-3 mb-0 py-2">
+            <div class="text-center">
+                <small class="text-muted">
+                    <i class="fas fa-coffee me-1"></i>Istirahat: 
+                    <span class="badge bg-primary mx-1">{{ \Carbon\Carbon::parse($todaySchedule->break_start_time)->format('H:i') }}</span>
+                    -
+                    <span class="badge bg-warning text-dark mx-1">{{ \Carbon\Carbon::parse($todaySchedule->break_end_time)->format('H:i') }}</span>
+                    <span class="d-block d-sm-inline mt-1 mt-sm-0">
+                        <i class="fas fa-info-circle me-1"></i>Tanpa toleransi waktu
+                    </span>
+                </small>
             </div>
         </div>
     @endif
@@ -605,29 +709,13 @@
 @endsection
 
 @push('scripts')
-<!-- Google Maps API -->
-<script>
-    // Fallback jika Google Maps API gagal dimuat
-    window.gm_authFailure = function() {
-        console.log('Google Maps API authentication failed');
-        $('#map').html(`
-            <div style="height: 400px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px;">
-                <div class="text-center">
-                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                    <h6 class="text-warning">Gagal memuat peta</h6>
-                    <p class="text-muted small">Google Maps API tidak tersedia</p>
-                </div>
-            </div>
-        `);
-    };
-</script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAtKnBpdNEsqcLOaluyGJJ7zUS4SekC_Dc" async defer></script>
-
+<!-- Leaflet Map -->
 <script>
     // Variabel global untuk peta dan marker
     let map;
     let userMarker;
     let officeMarker;
+    let radiusCircle;
     let userLocation = null;
     let officeLocation = null;
     
@@ -686,7 +774,7 @@
                     };
                     
                     // Update peta dengan lokasi pengguna jika peta tersedia
-                    if (typeof google !== 'undefined' && google.maps && map) {
+                    if (typeof L !== 'undefined' && map) {
                         updateMapWithUserLocation(coords);
                     } else {
                         // Fallback: tampilkan koordinat saja
@@ -757,60 +845,60 @@
         return R * c; // Jarak dalam meter
     }
 
-    // Fungsi untuk inisialisasi peta
+    // Fungsi untuk inisialisasi peta dengan Leaflet
     function initMap() {
         try {
-            console.log('Initializing map...');
+            console.log('Initializing Leaflet map...');
             console.log('Office data:', officeData);
             
             // Default center (bisa diubah sesuai kebutuhan)
-            const defaultCenter = { lat: officeData.latitude || -6.2088, lng: officeData.longitude || 106.8456 };
+            const defaultCenter = [officeData.latitude || -6.2088, officeData.longitude || 106.8456];
             
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 15,
-                center: defaultCenter,
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                styles: [
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels',
-                        stylers: [{ visibility: 'off' }]
-                    }
-                ]
-            });
+            // Inisialisasi peta Leaflet
+            map = L.map('map').setView(defaultCenter, 15);
+            
+            // Tambahkan tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-            console.log('Map initialized successfully');
+            console.log('Leaflet map initialized successfully');
 
             // Tambahkan marker kantor jika koordinat tersedia
             if (officeData.latitude && officeData.longitude && officeData.latitude !== 0 && officeData.longitude !== 0) {
-                officeLocation = { lat: officeData.latitude, lng: officeData.longitude };
+                officeLocation = [officeData.latitude, officeData.longitude];
                 
-                officeMarker = new google.maps.Marker({
-                    position: officeLocation,
-                    map: map,
-                    title: officeData.name,
-                    icon: {
-                        url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                        scaledSize: new google.maps.Size(32, 32)
-                    }
-                });
-
-                // Info window untuk kantor
-                const officeInfoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div class="map-info">
-                            <h6>🏢 ${officeData.name}</h6>
-                            <p>📍 ${officeData.address}</p>
-                            <p>📏 Radius: ${officeData.radius}m</p>
-                        </div>
-                    `
-                });
-
-                officeMarker.addListener('click', () => {
-                    officeInfoWindow.open(map, officeMarker);
+                // Buat custom icon untuk kantor
+                const officeIcon = L.divIcon({
+                    className: 'custom-office-marker',
+                    html: '<div style="background-color: #3b82f6; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">🏢</div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
                 });
                 
-                console.log('Office marker added');
+                officeMarker = L.marker(officeLocation, { icon: officeIcon }).addTo(map);
+                
+                // Tambahkan lingkaran radius
+                radiusCircle = L.circle(officeLocation, {
+                    color: '#dc2626',
+                    fillColor: '#dc2626',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    radius: officeData.radius
+                }).addTo(map);
+                
+                // Popup untuk kantor
+                const officePopup = `
+                    <div class="map-info">
+                        <h6>🏢 ${officeData.name}</h6>
+                        <p>📍 ${officeData.address}</p>
+                        <p>📏 Radius: ${officeData.radius}m</p>
+                        <p style="color: #dc2626; font-weight: 600;">🔴 Area absensi yang diizinkan</p>
+                    </div>
+                `;
+                
+                officeMarker.bindPopup(officePopup);
+                console.log('Office marker and radius circle added');
             } else {
                 // Jika koordinat kantor tidak tersedia, tampilkan pesan
                 $('#map').html(`
@@ -825,22 +913,22 @@
                 console.log('Office coordinates not available');
             }
         } catch (error) {
-            console.error('Error initializing map:', error);
+            console.error('Error initializing Leaflet map:', error);
             $('#map').html(`
                 <div style="height: 400px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 8px;">
                     <div class="text-center">
                         <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
                         <h6 class="text-warning">Gagal memuat peta</h6>
-                        <p class="text-muted small">Google Maps API tidak tersedia</p>
+                        <p class="text-muted small">Leaflet tidak tersedia</p>
                     </div>
                 </div>
             `);
         }
     }
 
-    // Fungsi untuk update peta dengan lokasi pengguna
+    // Fungsi untuk update peta dengan lokasi pengguna menggunakan Leaflet
     function updateMapWithUserLocation(coords) {
-        userLocation = { lat: coords.latitude, lng: coords.longitude };
+        userLocation = [coords.latitude, coords.longitude];
         
         // Cek apakah peta sudah diinisialisasi
         if (!map) {
@@ -850,34 +938,46 @@
         
         // Hapus marker pengguna yang lama jika ada
         if (userMarker) {
-            userMarker.setMap(null);
+            map.removeLayer(userMarker);
+        }
+        
+        // Hapus lingkaran radius yang lama jika ada (untuk refresh)
+        if (radiusCircle) {
+            map.removeLayer(radiusCircle);
         }
 
+        // Buat custom icon untuk pengguna
+        const userIcon = L.divIcon({
+            className: 'custom-user-marker',
+            html: '<div style="background-color: #dc2626; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📍</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+
         // Tambahkan marker pengguna
-        userMarker = new google.maps.Marker({
-            position: userLocation,
-            map: map,
-            title: 'Lokasi Anda',
-            icon: {
-                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                scaledSize: new google.maps.Size(32, 32)
-            }
-        });
+        userMarker = L.marker(userLocation, { icon: userIcon }).addTo(map);
+        
+        // Popup untuk pengguna
+        const userPopup = `
+            <div class="map-info">
+                <h6>📍 Lokasi Anda</h6>
+                <p>Lat: ${coords.latitude.toFixed(6)}</p>
+                <p>Lng: ${coords.longitude.toFixed(6)}</p>
+            </div>
+        `;
+        
+        userMarker.bindPopup(userPopup);
 
-        // Info window untuk pengguna
-        const userInfoWindow = new google.maps.InfoWindow({
-            content: `
-                <div class="map-info">
-                    <h6>📍 Lokasi Anda</h6>
-                    <p>Lat: ${coords.latitude.toFixed(6)}</p>
-                    <p>Lng: ${coords.longitude.toFixed(6)}</p>
-                </div>
-            `
-        });
-
-        userMarker.addListener('click', () => {
-            userInfoWindow.open(map, userMarker);
-        });
+        // Tambahkan kembali lingkaran radius jika ada koordinat kantor
+        if (officeLocation) {
+            radiusCircle = L.circle(officeLocation, {
+                color: '#dc2626',
+                fillColor: '#dc2626',
+                fillOpacity: 0.1,
+                weight: 2,
+                radius: officeData.radius
+            }).addTo(map);
+        }
 
         // Hitung jarak ke kantor
         let distance = 0;
@@ -886,26 +986,37 @@
         if (officeLocation) {
             distance = calculateDistance(
                 coords.latitude, coords.longitude,
-                officeLocation.lat, officeLocation.lng
+                officeLocation[0], officeLocation[1]
             );
             isWithinRadius = distance <= officeData.radius;
+            
+            // Update warna lingkaran berdasarkan posisi pengguna
+            if (radiusCircle) {
+                if (isWithinRadius) {
+                    radiusCircle.setStyle({
+                        color: '#10b981',
+                        fillColor: '#10b981',
+                        fillOpacity: 0.2
+                    });
+                } else {
+                    radiusCircle.setStyle({
+                        color: '#dc2626',
+                        fillColor: '#dc2626',
+                        fillOpacity: 0.1
+                    });
+                }
+            }
         }
 
         // Update detail lokasi
         updateLocationDetails(coords, distance, isWithinRadius);
 
-        // Fit bounds untuk menampilkan kedua marker
+        // Fit bounds untuk menampilkan kedua marker dan lingkaran
         if (officeLocation) {
-            const bounds = new google.maps.LatLngBounds();
-            bounds.extend(userLocation);
-            bounds.extend(officeLocation);
-            map.fitBounds(bounds);
-            
-            // Tambahkan padding
-            map.setZoom(Math.min(map.getZoom(), 16));
+            const bounds = L.latLngBounds([userLocation, officeLocation]);
+            map.fitBounds(bounds, { padding: [20, 20] });
         } else {
-            map.setCenter(userLocation);
-            map.setZoom(16);
+            map.setView(userLocation, 16);
         }
     }
 
@@ -918,7 +1029,7 @@
             $('#distance-to-office').text(`${Math.round(distance)}m`);
             $('#attendance-radius').text(`${officeData.radius}m`);
             
-            const statusText = isWithinRadius ? 'Dalam Radius' : 'Di Luar Radius';
+            const statusText = isWithinRadius ? '✅ Dalam Radius' : '❌ Di Luar Radius';
             const statusClass = isWithinRadius ? 'text-success' : 'text-danger';
             $('#location-status-badge').text(statusText).removeClass('text-success text-danger').addClass(statusClass);
         } else {
@@ -960,16 +1071,16 @@
         setInterval(updateClock, 1000);
         updateClock(); // Panggil pertama kali agar langsung tampil
 
-        // Inisialisasi peta setelah Google Maps API dimuat
+        // Inisialisasi peta Leaflet
         setTimeout(() => {
-            if (typeof google !== 'undefined' && google.maps) {
+            if (typeof L !== 'undefined') {
                 try {
                     initMap();
                 } catch (error) {
-                    console.error('Error initializing map:', error);
+                    console.error('Error initializing Leaflet map:', error);
                 }
             }
-        }, 2000);
+        }, 1000);
 
         // Dapatkan lokasi pengguna secara otomatis
         setTimeout(() => {

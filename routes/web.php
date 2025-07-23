@@ -103,7 +103,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 
-Route::middleware(['auth', 'employee'])->prefix('employee')->name('employee.')->group(function () {
+Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [DashboardEmployeeController::class, 'index'])->name('dashboard');
 
     // Profil Karyawan
@@ -124,6 +124,7 @@ Route::middleware(['auth', 'employee'])->prefix('employee')->name('employee.')->
 
     // Riwayat
     Route::get('/riwayat', [DashboardEmployeeController::class, 'history'])->name('history');
+    Route::post('/employee/save-subscription', [\App\Http\Controllers\Employee\NotificationController::class, 'saveSubscription']);
 });
 
 

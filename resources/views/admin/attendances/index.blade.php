@@ -6,7 +6,6 @@
 @push('styles')
     {{-- DataTables CSS --}}
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.0.1/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('AdminLTE-3.0.1/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.0.1/plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
     {{-- Tempus Dominus (Date/Time Picker untuk AdminLTE 3) --}}
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.0.1/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
@@ -225,8 +224,6 @@
     {{-- DataTables JS --}}
     <script src="{{ asset('AdminLTE-3.0.1/plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('AdminLTE-3.0.1/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('AdminLTE-3.0.1/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('AdminLTE-3.0.1/plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('AdminLTE-3.0.1/plugins/datatables-buttons/js/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('AdminLTE-3.0.1/plugins/datatables-buttons/js/buttons.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('AdminLTE-3.0.1/plugins/jszip/jszip.min.js') }}"></script>
@@ -288,6 +285,24 @@
                   allowInputToggle: true,
                   ignoreReadonly: true
               });
+
+              // Event handler untuk tombol "Tambah Absensi Manual"
+              $('#createNewAttendance').click(function () {
+                  $('#attendance_id').val('');
+                  $('#attendanceForm').trigger("reset");
+                  $('#modelHeading').html("Tambah Absensi Manual");
+                  $('#saveBtn').val("create-attendance");
+                  $('#saveBtn').html('Simpan Absensi');
+                  $('#ajaxModel').modal('show');
+                  
+                  // Clear any previous errors
+                  $('.error-text').text('');
+                  
+                  // Set default timestamp to current time
+                  var now = moment().format('DD/MM/YYYY HH:mm:ss');
+                  $('#timestamp').val(now);
+              });
+
               // Inisialisasi Datepicker untuk Filter
               $('#filter_start_date_picker').datetimepicker({
                   format: 'DD/MM/YYYY',
@@ -329,6 +344,7 @@
           var table = $('#attendance-table').DataTable({
               processing: true,
               serverSide: true,
+              responsive: false, // Disable responsive
               ajax: {
                   url: "{{ route('admin.attendances.index') }}",
                   data: function (d) {
@@ -439,11 +455,12 @@
               $(this).html('Mengirim..');
 
               var formData = new FormData($('#attendanceForm')[0]);
+              var saveBtn = $('#saveBtn').val();
               var attendance_id = $('#attendance_id').val();
               var url;
               var type;
 
-              if (attendance_id) {
+              if (saveBtn === "edit-attendance" && attendance_id) {
                   url = "{{ route('admin.attendances.update', ':id') }}".replace(':id', attendance_id);
                   type = 'POST'; // Menggunakan POST untuk PUT override
                   formData.append('_method', 'PUT'); // Tambahkan method override untuk PUT
@@ -463,6 +480,7 @@
                       $('#ajaxModel').modal('hide');
                       table.draw(); // Refresh Datatables
                       $('#saveBtn').html('Simpan Absensi');
+                      $('#saveBtn').val('create-attendance');
                       Swal.fire('Berhasil!', data.success, 'success');
                   },
                   error: function (data) {
@@ -476,6 +494,31 @@
                       }
                       Swal.fire('Error!', data.responseJSON.error || 'Terjadi kesalahan. Periksa input Anda.', 'error');
                   }
+              });
+          });
+
+          // Event handler untuk tombol "Edit"
+          $('body').on('click', '.editAttendance', function () {
+              var attendance_id = $(this).data('id');
+              $.get("{{ route('admin.attendances.show', ':id') }}".replace(':id', attendance_id), function (data) {
+                  $('#modelHeading').html("Edit Absensi");
+                  $('#saveBtn').val("edit-attendance");
+                  $('#saveBtn').html('Update Absensi');
+                  $('#ajaxModel').modal('show');
+                  $('#attendance_id').val(data.id);
+                  $('#user_id').val(data.user_id);
+                  $('#branch_id').val(data.branch_id);
+                  $('#timestamp').val(data.timestamp);
+                  $('#type').val(data.type);
+                  $('#status').val(data.status);
+                  $('#latitude').val(data.latitude);
+                  $('#longitude').val(data.longitude);
+                  $('#late_minutes').val(data.late_minutes);
+                  
+                  // Clear any previous errors
+                  $('.error-text').text('');
+              }).fail(function(xhr) {
+                  Swal.fire('Error!', 'Tidak dapat memuat data absensi.', 'error');
               });
           });
 

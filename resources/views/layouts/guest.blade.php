@@ -13,6 +13,8 @@
 
         <!-- Google Fonts: Poppins -->
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="manifest" href="/absensioptik/public/manifest.json">
+        <meta name="theme-color" content="#dc2626">
         <style>
             body {
                 font-family: 'Poppins', 'Figtree', sans-serif;
@@ -208,5 +210,15 @@
                 &copy; {{ date('Y') }} Optik Melati. All rights reserved.
             </div>
         </div>
+        <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/absensioptik/public/service-worker.js')
+          .then(function(reg) {
+            // console.log('Service worker registered.', reg);
+          });
+      });
+    }
+    </script>
     </body>
 </html>

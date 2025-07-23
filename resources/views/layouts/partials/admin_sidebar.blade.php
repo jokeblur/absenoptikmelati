@@ -65,12 +65,12 @@
                 <p>Laporan Absensi</p>
               </a>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <a href="{{ route('admin.attendance.settings') }}" class="nav-link {{ Request::routeIs('admin.attendance.settings') ? 'active' : '' }}">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Pengaturan Absensi</p>
               </a>
-            </li>
+            </li> -->
             <li class="nav-item">
               <a href="{{ route('admin.attendance.export') }}" class="nav-link {{ Request::routeIs('admin.attendance.export') ? 'active' : '' }}">
                 <i class="far fa-circle nav-icon"></i>

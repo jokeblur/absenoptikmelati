@@ -22,6 +22,7 @@ class User extends Authenticatable
         'role',
         'branch_id',
         'profile_photo',
+        'push_subscription',
     ];
 
     /**
@@ -41,6 +42,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'push_subscription' => 'array',
     ];
 
     // RELATIONSHIPS
