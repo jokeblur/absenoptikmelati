@@ -18,13 +18,27 @@ class AdminController extends Controller
         
         // Absensi hari ini
         $today = Carbon::today();
-        $totalAttendance = Attendance::whereDate('date', $today)->count();
+        
+        // Dapatkan semua karyawan yang sudah absen hari ini
+        $attendedUsers = Attendance::whereDate('date', $today)
+                                  ->pluck('user_id')
+                                  ->unique();
+        
+        // Hitung karyawan yang tidak hadir (tidak absen sama sekali)
+        $absentUsers = User::where('role', 'karyawan')
+                          ->whereNotIn('id', $attendedUsers)
+                          ->get();
+        
+        $absentCount = $absentUsers->count();
+        $totalAttendance = $attendedUsers->count();
+        
+        // Hitung karyawan terlambat hari ini
         $todayLateCount = Attendance::whereDate('date', $today)
                                    ->where(function($q) {
                                        $q->where('status_in', 'late')->orWhere('status_out', 'late');
                                    })->count();
         
-        // Persentase kehadiran hari ini
+        // Persentase kehadiran hari ini (termasuk yang tidak hadir)
         $attendancePercentage = $totalEmployees > 0 ? 
             round(($totalAttendance / $totalEmployees) * 100, 1) : 0;
         
@@ -69,6 +83,8 @@ class AdminController extends Controller
             'totalEmployees',
             'totalAdmins',
             'totalAttendance',
+            'absentCount',
+            'absentUsers',
             'todayLateCount',
             'attendancePercentage',
             'lateEmployees',

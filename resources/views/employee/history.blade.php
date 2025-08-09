@@ -3,6 +3,11 @@
 @section('title', 'Riwayat Absensi')
 
 @push('styles')
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+
 <style>
     /* Apply Poppins font to history page */
     body {
@@ -28,6 +33,7 @@
     .pagination {
         font-family: 'Poppins', sans-serif;
     }
+    
     /* Custom tab style for better visibility */
     .nav-tabs .nav-link {
         color: #2c3e50 !important;
@@ -47,6 +53,62 @@
         border: 1px solid #bdc3c7;
         border-top: none;
         padding: 1rem;
+    }
+    
+    /* DataTables Custom Styling */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_processing,
+    .dataTables_wrapper .dataTables_paginate {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+    }
+    
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .dataTables_wrapper .dataTables_length select:focus,
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.15);
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 8px;
+        margin: 0 2px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        border-color: #dc2626 !important;
+        color: white !important;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+        border-color: #b91c1c !important;
+        color: white !important;
+    }
+    
+    /* Table styling improvements */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .dataTables_wrapper .dataTables_processing {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 </style>
 @endpush
@@ -88,7 +150,7 @@
                     <div class="card-body">
                     @if($attendances->count() > 0)
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped" id="attendanceTable">
                                 <thead>
                                     <tr>
                                         <th>Tanggal</th>
@@ -143,11 +205,6 @@
                                 </tbody>
                             </table>
                     </div>
-
-                        <!-- Pagination -->
-                        <div class="d-flex justify-content-center mt-4">
-                            {{ $attendances->links() }}
-                </div>
                     @else
                         <div class="text-center py-4">
                             <i class="bi bi-inbox fs-1 text-muted"></i>
@@ -170,7 +227,7 @@
                         <div class="card-body">
                             @if($leaves->count() > 0)
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
+                                    <table class="table table-striped" id="leaveTable">
                                         <thead>
                                             <tr>
                                                 <th>Tanggal Pengajuan</th>
@@ -235,7 +292,7 @@
                     <div class="card-body">
                             @if($permissions->count() > 0)
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
+                                    <table class="table table-striped" id="permissionTable">
                                         <thead>
                                             <tr>
                                                 <th>Tanggal Pengajuan</th>
@@ -288,9 +345,95 @@
 @endsection
 
 @push('scripts')
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
 <script>
 $(document).ready(function() {
     console.log('History page loaded');
+    
+    // Initialize DataTables for all tables
+    if ($('#attendanceTable').length) {
+        $('#attendanceTable').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+            },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            order: [[0, 'desc']], // Sort by date descending
+            columnDefs: [
+                {
+                    targets: [1, 2, 3, 4], // Time columns and status
+                    orderable: true,
+                    searchable: true
+                }
+            ],
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+            initComplete: function() {
+                console.log('Attendance DataTable initialized');
+            }
+        });
+    }
+    
+    if ($('#leaveTable').length) {
+        $('#leaveTable').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+            },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            order: [[0, 'desc']], // Sort by submission date descending
+            columnDefs: [
+                {
+                    targets: [4, 6], // Reason and admin notes columns
+                    orderable: false,
+                    searchable: true
+                }
+            ],
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+            initComplete: function() {
+                console.log('Leave DataTable initialized');
+            }
+        });
+    }
+    
+    if ($('#permissionTable').length) {
+        $('#permissionTable').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+            },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            order: [[0, 'desc']], // Sort by submission date descending
+            columnDefs: [
+                {
+                    targets: [2, 4], // Reason and admin notes columns
+                    orderable: false,
+                    searchable: true
+                }
+            ],
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                 '<"row"<"col-sm-12"tr>>' +
+                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+            initComplete: function() {
+                console.log('Permission DataTable initialized');
+            }
+        });
+    }
     
     // Test if Bootstrap is available
     if (typeof bootstrap !== 'undefined') {
@@ -305,6 +448,19 @@ $(document).ready(function() {
                 event.preventDefault()
                 tabTrigger.show()
                 console.log('Tab clicked:', triggerEl.getAttribute('data-bs-target'));
+                
+                // Redraw DataTables when switching tabs to ensure proper rendering
+                setTimeout(function() {
+                    if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+                        $('#attendanceTable').DataTable().columns.adjust().responsive.recalc();
+                    }
+                    if ($.fn.DataTable.isDataTable('#leaveTable')) {
+                        $('#leaveTable').DataTable().columns.adjust().responsive.recalc();
+                    }
+                    if ($.fn.DataTable.isDataTable('#permissionTable')) {
+                        $('#permissionTable').DataTable().columns.adjust().responsive.recalc();
+                    }
+                }, 100);
             })
         })
         
@@ -326,6 +482,19 @@ $(document).ready(function() {
             // Add active class to clicked tab and show target content
             $(this).addClass('active').attr('aria-selected', 'true');
             $target.addClass('show active');
+            
+            // Redraw DataTables when switching tabs
+            setTimeout(function() {
+                if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+                    $('#attendanceTable').DataTable().columns.adjust().responsive.recalc();
+                }
+                if ($.fn.DataTable.isDataTable('#leaveTable')) {
+                    $('#leaveTable').DataTable().columns.adjust().responsive.recalc();
+                }
+                if ($.fn.DataTable.isDataTable('#permissionTable')) {
+                    $('#permissionTable').DataTable().columns.adjust().responsive.recalc();
+                }
+            }, 100);
             
             console.log('Manual tab switch to:', target);
         });

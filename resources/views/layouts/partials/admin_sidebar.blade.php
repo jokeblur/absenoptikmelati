@@ -65,6 +65,12 @@
                 <p>Laporan Absensi</p>
               </a>
             </li>
+            <li class="nav-item">
+              <a href="{{ route('admin.attendance.monthly_late_report') }}" class="nav-link {{ Request::routeIs('admin.attendance.monthly_late_report') ? 'active' : '' }}">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Laporan Keterlambatan Bulanan</p>
+              </a>
+            </li>
             <!-- <li class="nav-item">
               <a href="{{ route('admin.attendance.settings') }}" class="nav-link {{ Request::routeIs('admin.attendance.settings') ? 'active' : '' }}">
                 <i class="far fa-circle nav-icon"></i>

@@ -90,6 +90,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('attendance/export-data', [AdminAttendanceController::class, 'exportData'])->name('attendance.export_data');
     Route::get('attendance/preview', [AdminAttendanceController::class, 'preview'])->name('attendance.preview');
     Route::post('attendance/export', [AdminAttendanceController::class, 'exportData'])->name('attendance.export');
+    Route::get('attendance/absent-users', [AdminAttendanceController::class, 'getAbsentUsers'])->name('attendance.absent_users');
+    Route::get('attendance/late-users', [AdminAttendanceController::class, 'getLateUsers'])->name('attendance.late_users');
+    Route::get('attendance/monthly-late-report', [AdminAttendanceController::class, 'monthlyLateReport'])->name('attendance.monthly_late_report');
     
     Route::get('late-employees', [LateEmployeeController::class, 'index'])->name('late_employees.index');
     // Anda mungkin perlu rute API untuk data Datatables di sini juga

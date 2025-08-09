@@ -71,7 +71,7 @@
                                 <label for="format">Format Export:</label>
                                 <select class="form-control" id="format" name="format" required>
                                     <option value="csv">CSV</option>
-                                    <option value="excel">Excel</option>
+                                    <option value="excel" selected>Excel (.xlsx)</option>
                                     <option value="pdf">PDF</option>
                                 </select>
                             </div>
@@ -86,6 +86,48 @@
                                     <option value="late">Keterlambatan</option>
                                     <option value="absent">Tidak Hadir</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="include_absent" name="include_absent" value="1">
+                                    <label class="custom-control-label" for="include_absent">
+                                        <strong>Sertakan data karyawan yang tidak hadir</strong>
+                                        <small class="text-muted d-block">Centang ini jika ingin menyertakan data karyawan yang tidak mengambil absen dalam export</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="include_leave" name="include_leave" value="1">
+                                    <label class="custom-control-label" for="include_leave">
+                                        <strong>Sertakan data karyawan yang cuti</strong>
+                                        <small class="text-muted d-block">Centang ini jika ingin menyertakan data karyawan yang sedang cuti dalam export</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="include_permission" name="include_permission" value="1">
+                                    <label class="custom-control-label" for="include_permission">
+                                        <strong>Sertakan data karyawan yang izin</strong>
+                                        <small class="text-muted d-block">Centang ini jika ingin menyertakan data karyawan yang sedang izin dalam export</small>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -236,6 +278,9 @@ $(function () {
         const userId = $('#user_id').val();
         const branchId = $('#branch_id').val();
         const type = $('#type').val();
+        const includeAbsent = $('#include_absent').is(':checked');
+        const includeLeave = $('#include_leave').is(':checked');
+        const includePermission = $('#include_permission').is(':checked');
         
         if (!startDate || !endDate) {
             Swal.fire('Error!', 'Pilih tanggal mulai dan selesai.', 'error');
@@ -253,7 +298,10 @@ $(function () {
                 end_date: endDate,
                 user_id: userId,
                 branch_id: branchId,
-                type: type
+                type: type,
+                include_absent: includeAbsent,
+                include_leave: includeLeave,
+                include_permission: includePermission
             },
             success: function(response) {
                 $('#previewContent').html(response);

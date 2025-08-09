@@ -109,8 +109,8 @@
     <div class="col-lg-3 col-6">
         <div class="small-box bg-danger">
             <div class="inner">
-                <h3>{{ $absentCount }}</h3>
-                <p>Tidak Hadir</p>
+                <h3>{{ $totalAbsentCount }}</h3>
+                <p>Tidak Hadir (Hari Kerja)</p>
             </div>
             <div class="icon">
                 <i class="fas fa-times-circle"></i>
@@ -163,36 +163,135 @@
                         <thead>
                             <tr>
                                 <th>Tanggal</th>
+                                <th>Hari</th>
                                 <th>Total Absensi</th>
                                 <th>Terlambat</th>
                                 <th>Tidak Hadir</th>
                                 <th>Persentase Kehadiran</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($dailyStats as $stat)
-                            <tr>
-                                <td>{{ \Carbon\Carbon::parse($stat->date)->format('d/m/Y') }}</td>
+                            <tr class="{{ !$stat->is_working_day ? 'table-secondary' : '' }}">
+                                <td>
+                                    {{ \Carbon\Carbon::parse($stat->date)->format('d/m/Y') }}
+                                    @if(!$stat->is_working_day)
+                                        <span class="badge badge-info ml-1">Libur</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @php
+                                        $dayNames = [
+                                            'Monday' => 'Senin',
+                                            'Tuesday' => 'Selasa', 
+                                            'Wednesday' => 'Rabu',
+                                            'Thursday' => 'Kamis',
+                                            'Friday' => 'Jumat',
+                                            'Saturday' => 'Sabtu',
+                                            'Sunday' => 'Minggu'
+                                        ];
+                                        $dayName = $dayNames[$stat->day_name] ?? $stat->day_name;
+                                    @endphp
+                                    {{ $dayName }}
+                                </td>
                                 <td>{{ $stat->total }}</td>
                                 <td>
                                     <span class="badge badge-warning">{{ $stat->late_count }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-danger">{{ $stat->absent_count }}</span>
+                                    @if($stat->is_working_day)
+                                        <span class="badge badge-danger">{{ $stat->absent_count }}</span>
+                                    @else
+                                        <span class="badge badge-secondary">-</span>
+                                    @endif
                                 </td>
                                 <td>
-                                    @php
-                                        $percentage = $totalEmployees > 0 ? (($stat->total - $stat->absent_count) / $totalEmployees) * 100 : 0;
-                                    @endphp
-                                    <span class="badge badge-{{ $percentage >= 80 ? 'success' : ($percentage >= 60 ? 'warning' : 'danger') }}">
-                                        {{ number_format($percentage, 1) }}%
-                                    </span>
+                                    @if($stat->is_working_day)
+                                        @php
+                                            $percentage = $totalEmployees > 0 ? (($stat->total) / $totalEmployees) * 100 : 0;
+                                        @endphp
+                                        <span class="badge badge-{{ $percentage >= 80 ? 'success' : ($percentage >= 60 ? 'warning' : 'danger') }}">
+                                            {{ number_format($percentage, 1) }}%
+                                        </span>
+                                    @else
+                                        <span class="badge badge-info">Hari Libur</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        @if($stat->is_working_day && $stat->late_count > 0)
+                                            <button type="button" class="btn btn-sm btn-warning" 
+                                                    onclick="showLateUsers('{{ $stat->date }}', {{ $stat->late_count }})">
+                                                <i class="fas fa-clock"></i> Lihat Terlambat
+                                            </button>
+                                        @endif
+                                        @if($stat->is_working_day && $stat->absent_count > 0)
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="showAbsentUsers('{{ $stat->date }}', {{ $stat->absent_count }})">
+                                                <i class="fas fa-eye"></i> Lihat Tidak Hadir
+                                            </button>
+                                        @endif
+                                        @if($stat->is_working_day && $stat->late_count == 0 && $stat->absent_count == 0)
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal untuk menampilkan daftar karyawan yang tidak hadir per tanggal -->
+<div class="modal fade" id="absentUsersModal" tabindex="-1" role="dialog" aria-labelledby="absentUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="absentUsersModalLabel">
+                    <i class="fas fa-user-times mr-1"></i>
+                    Daftar Karyawan Tidak Hadir
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="absentUsersContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal untuk menampilkan daftar karyawan yang terlambat per tanggal -->
+<div class="modal fade" id="lateUsersModal" tabindex="-1" role="dialog" aria-labelledby="lateUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lateUsersModalLabel">
+                    <i class="fas fa-clock mr-1"></i>
+                    Daftar Karyawan Terlambat
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="lateUsersContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -261,10 +360,34 @@
                         <label for="export_format">Format Export:</label>
                         <select class="form-control" id="export_format" name="format" required>
                             <option value="">Pilih Format</option>
-                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="excel" selected>Excel (.xlsx)</option>
                             <option value="csv">CSV (.csv)</option>
                             <option value="pdf">PDF (.pdf)</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="include_absent" name="include_absent" value="1">
+                            <label class="custom-control-label" for="include_absent">
+                                Sertakan data karyawan yang tidak hadir
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="include_leave" name="include_leave" value="1">
+                            <label class="custom-control-label" for="include_leave">
+                                Sertakan data karyawan yang cuti
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="include_permission" name="include_permission" value="1">
+                            <label class="custom-control-label" for="include_permission">
+                                Sertakan data karyawan yang izin
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -318,15 +441,15 @@ $(function () {
     const labels = dailyData.map(item => moment(item.date).format('DD/MM/YYYY'));
     const totalData = dailyData.map(item => item.total);
     const lateData = dailyData.map(item => item.late_count);
-    const absentData = dailyData.map(item => item.absent_count);
+    const absentData = dailyData.map(item => item.is_working_day ? item.absent_count : 0);
     
     // Data untuk status chart
     // eslint-disable-next-line
-    const onTimeCount = @json($totalAttendance - $lateCount - $absentCount);
+    const onTimeCount = @json($totalAttendance - $lateCount);
     // eslint-disable-next-line
     const lateCount = @json($lateCount);
     // eslint-disable-next-line
-    const absentCount = @json($absentCount);
+    const absentCount = @json($totalAbsentCount);
 
     // Grafik Absensi Harian
     const attendanceChart = new Chart(document.getElementById('attendanceChart'), {
@@ -493,6 +616,117 @@ $(function () {
         const value = $(this).val();
         $('#export_' + fieldName).val(value);
     });
+
+    // Function to show absent users modal
+    window.showAbsentUsers = function(date, count) {
+        // Show loading
+        $('#absentUsersContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Loading...</p></div>');
+        $('#absentUsersModal').modal('show');
+
+        // Get current filter values
+        const userId = $('#user_id').val();
+        const branchId = $('#branch_id').val();
+
+        // Fetch absent users data
+        $.ajax({
+            url: '{{ route("admin.attendance.absent_users") }}',
+            method: 'GET',
+            data: {
+                date: date,
+                user_id: userId,
+                branch_id: branchId
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '<h6 class="mb-3">Tanggal: ' + response.date + '</h6>';
+                    
+                    // Check if it's a holiday
+                    if (response.message && response.message.includes('hari libur')) {
+                        html += '<div class="text-center"><i class="fas fa-calendar-times text-info fa-2x"></i><p class="mt-2 text-info">Hari ini adalah hari libur</p></div>';
+                    } else if (response.data.length > 0) {
+                        html += '<div class="table-responsive"><table class="table table-bordered table-striped">';
+                        html += '<thead><tr><th>No</th><th>Nama</th><th>Email</th><th>Cabang</th></tr></thead>';
+                        html += '<tbody>';
+                        
+                        response.data.forEach(function(user, index) {
+                            html += '<tr>';
+                            html += '<td>' + (index + 1) + '</td>';
+                            html += '<td>' + user.name + '</td>';
+                            html += '<td>' + user.email + '</td>';
+                            html += '<td>' + (user.branch ? user.branch.name : 'Tidak ada cabang') + '</td>';
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody></table></div>';
+                    } else {
+                        html += '<div class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i><p class="mt-2">Tidak ada karyawan yang tidak hadir pada tanggal ini.</p></div>';
+                    }
+                    
+                    $('#absentUsersContent').html(html);
+                } else {
+                    $('#absentUsersContent').html('<div class="text-center text-danger"><i class="fas fa-exclamation-triangle fa-2x"></i><p class="mt-2">Terjadi kesalahan saat memuat data.</p></div>');
+                }
+            },
+            error: function() {
+                $('#absentUsersContent').html('<div class="text-center text-danger"><i class="fas fa-exclamation-triangle fa-2x"></i><p class="mt-2">Terjadi kesalahan saat memuat data.</p></div>');
+            }
+        });
+    };
+
+    // Function to show late users modal
+    window.showLateUsers = function(date, count) {
+        // Show loading
+        $('#lateUsersContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Loading...</p></div>');
+        $('#lateUsersModal').modal('show');
+
+        // Get current filter values
+        const userId = $('#user_id').val();
+        const branchId = $('#branch_id').val();
+
+        // Fetch late users data
+        $.ajax({
+            url: '{{ route("admin.attendance.late_users") }}',
+            method: 'GET',
+            data: {
+                date: date,
+                user_id: userId,
+                branch_id: branchId
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '<h6 class="mb-3">Tanggal: ' + response.date + '</h6>';
+                    
+                    if (response.data.length > 0) {
+                        html += '<div class="table-responsive"><table class="table table-bordered table-striped">';
+                        html += '<thead><tr><th>No</th><th>Nama</th><th>Email</th><th>Cabang</th><th>Waktu Check-in</th><th>Keterlambatan</th></tr></thead>';
+                        html += '<tbody>';
+                        
+                        response.data.forEach(function(attendance, index) {
+                            html += '<tr>';
+                            html += '<td>' + (index + 1) + '</td>';
+                            html += '<td>' + attendance.user.name + '</td>';
+                            html += '<td>' + attendance.user.email + '</td>';
+                            html += '<td>' + (attendance.user.branch ? attendance.user.branch.name : 'Tidak ada cabang') + '</td>';
+                            html += '<td>' + attendance.check_in + '</td>';
+                            html += '<td><span class="badge badge-warning">' + attendance.late_minutes + ' menit</span></td>';
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody></table></div>';
+                    } else {
+                        html += '<div class="text-center"><i class="fas fa-check-circle text-success fa-2x"></i><p class="mt-2">Tidak ada karyawan yang terlambat pada tanggal ini.</p></div>';
+                    }
+                    
+                    $('#lateUsersContent').html(html);
+                } else {
+                    $('#lateUsersContent').html('<div class="text-center text-danger"><i class="fas fa-exclamation-triangle fa-2x"></i><p class="mt-2">Terjadi kesalahan saat memuat data.</p></div>');
+                }
+            },
+            error: function() {
+                $('#lateUsersContent').html('<div class="text-center text-danger"><i class="fas fa-exclamation-triangle fa-2x"></i><p class="mt-2">Terjadi kesalahan saat memuat data.</p></div>');
+            }
+        });
+    };
 });
 </script>
 @endpush 

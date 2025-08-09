@@ -38,7 +38,7 @@
       <div class="small-box bg-success">
         <div class="inner">
           <h3>{{ $totalAttendance }}</h3>
-          <p>Absensi Hari Ini</p>
+          <p>Hadir Hari Ini</p>
         </div>
         <div class="icon">
           <i class="fas fa-clock"></i>
@@ -46,6 +46,21 @@
         <a href="{{ route('admin.attendances.index') }}?start_date={{ now()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
       </div>
     </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box bg-danger">
+        <div class="inner">
+          <h3>{{ $absentCount }}</h3>
+          <p>Tidak Hadir Hari Ini</p>
+        </div>
+        <div class="icon">
+          <i class="fas fa-user-times"></i>
+        </div>
+        <a href="#" class="small-box-footer" onclick="showAbsentUsers()">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
     <div class="col-lg-3 col-6">
       <div class="small-box bg-warning">
         <div class="inner">
@@ -58,7 +73,44 @@
         <a href="{{ route('admin.leaves.index') }}" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
       </div>
     </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box bg-info">
+        <div class="inner">
+          <h3>{{ $pendingPermissions }}</h3>
+          <p>Pengajuan Izin Pending</p>
+        </div>
+        <div class="icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <a href="{{ route('admin.permissions.index') }}" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box bg-warning">
+        <div class="inner">
+          <h3>{{ $todayLateCount }}</h3>
+          <p>Terlambat Hari Ini</p>
+        </div>
+        <div class="icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <a href="{{ route('admin.attendances.index') }}?start_date={{ now()->format('Y-m-d') }}&end_date={{ now()->format('Y-m-d') }}&status=late" class="small-box-footer">Lihat Detail <i class="fas fa-arrow-circle-right"></i></a>
+      </div>
+    </div>
+    <div class="col-lg-3 col-6">
+      <div class="small-box bg-success">
+        <div class="inner">
+          <h3>{{ $attendancePercentage }}%</h3>
+          <p>Persentase Kehadiran</p>
+        </div>
+        <div class="icon">
+          <i class="fas fa-percentage"></i>
+        </div>
+        <a href="{{ route('admin.attendance.report') }}" class="small-box-footer">Lihat Laporan <i class="fas fa-arrow-circle-right"></i></a>
+      </div>
+    </div>
   </div>
+
   <div class="row">
     <section class="col-lg-12 connectedSortable">
       <div class="card">
@@ -109,6 +161,24 @@
                 </div>
               </div>
             </div>
+            <div class="col-6">
+              <div class="info-box">
+                <span class="info-box-icon bg-danger"><i class="fas fa-user-times"></i></span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Tidak Hadir</span>
+                  <span class="info-box-number">{{ $absentCount }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="info-box">
+                <span class="info-box-icon bg-info"><i class="fas fa-percentage"></i></span>
+                <div class="info-box-content">
+                  <span class="info-box-text">Kehadiran</span>
+                  <span class="info-box-number">{{ $attendancePercentage }}%</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -148,6 +218,58 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal untuk menampilkan daftar karyawan yang tidak hadir -->
+  <div class="modal fade" id="absentUsersModal" tabindex="-1" role="dialog" aria-labelledby="absentUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="absentUsersModalLabel">
+            <i class="fas fa-user-times mr-1"></i>
+            Daftar Karyawan Tidak Hadir Hari Ini
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          @if($absentUsers->count() > 0)
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Cabang</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($absentUsers as $index => $user)
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>{{ $user->name }}</td>
+                      <td>{{ $user->email }}</td>
+                      <td>{{ $user->branch->name ?? 'Tidak ada cabang' }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @else
+            <div class="text-center">
+              <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+              <h5 class="mt-3">Semua Karyawan Hadir</h5>
+              <p class="text-muted">Tidak ada karyawan yang tidak hadir hari ini.</p>
+            </div>
+          @endif
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
   @endsection
 
 @push('scripts')
@@ -180,5 +302,9 @@ $(function () {
     });
     /* eslint-enable */
 });
+
+function showAbsentUsers() {
+    $('#absentUsersModal').modal('show');
+}
 </script>
 @endpush
